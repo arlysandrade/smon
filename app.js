@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 const snmp = require('net-snmp');
+const ping = require('ping');
+const os = require('os');
 
 const app = express();
 const port = 3000;
@@ -59,7 +61,9 @@ app.use(requireAuth);
 
 // Settings configuration
 let settings = {
-  pollingInterval: 300000 // 5 minutes in milliseconds
+  pollingInterval: 300000, // 5 minutes in milliseconds
+  pingInterval: 30000, // 30 seconds in milliseconds
+  dataRetention: 30 // days
 };
 
 // Load or create settings file
@@ -68,6 +72,21 @@ if (fs.existsSync(settingsFile)) {
   settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
 } else {
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+}
+
+// Ping configuration
+let pingTargets = [
+  { id: 1, name: 'Google DNS', host: '8.8.8.8', group: 'DNS', enabled: true },
+  { id: 2, name: 'Cloudflare DNS', host: '1.1.1.1', group: 'DNS', enabled: true },
+  { id: 3, name: 'Local Gateway', host: '192.168.1.1', group: 'Network', enabled: true }
+];
+
+// Load or create ping targets file
+const pingTargetsFile = './ping-targets.json';
+if (fs.existsSync(pingTargetsFile)) {
+  pingTargets = JSON.parse(fs.readFileSync(pingTargetsFile, 'utf8'));
+} else {
+  fs.writeFileSync(pingTargetsFile, JSON.stringify(pingTargets, null, 2));
 }
 
 // Helper function to save config
@@ -80,6 +99,12 @@ function saveConfig() {
 function saveSettings() {
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
   console.log('Settings saved');
+}
+
+// Helper function to save ping targets
+function savePingTargets() {
+  fs.writeFileSync(pingTargetsFile, JSON.stringify(pingTargets, null, 2));
+  console.log('Ping targets saved');
 }
 
 // Route for dashboard page
@@ -108,13 +133,150 @@ app.get('/settings', (req, res) => {
   res.render('settings', { 
     settings: settings,
     devices: snmpDevices,
-    pollingIntervalSeconds: settings.pollingInterval / 1000
+    pollingIntervalSeconds: settings.pollingInterval / 1000,
+    pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
   });
 });
 
 // Route for about page
 app.get('/about', (req, res) => {
   res.render('about');
+});
+
+// Route for ping monitoring page
+app.get('/ping', (req, res) => {
+  // Group ping targets by group
+  const groupedTargets = {};
+  pingTargets.forEach(target => {
+    if (!groupedTargets[target.group]) {
+      groupedTargets[target.group] = [];
+    }
+    groupedTargets[target.group].push(target);
+  });
+
+  res.render('ping', { 
+    pingTargets: pingTargets,
+    groupedTargets: groupedTargets,
+    settings: settings
+  });
+});
+
+// API to get ping targets
+app.get('/api/ping-targets', (req, res) => {
+  res.json(pingTargets);
+});
+
+// API to add ping target
+app.post('/api/ping-targets', (req, res) => {
+  try {
+    const { name, host, group } = req.body;
+    
+    if (!name || !host || !group) {
+      return res.status(400).json({ error: 'Name, host, and group are required' });
+    }
+    
+    // Check if host already exists
+    const existingTarget = pingTargets.find(target => target.host === host);
+    if (existingTarget) {
+      return res.status(400).json({ error: 'Host already exists' });
+    }
+    
+    const newTarget = {
+      id: Math.max(...pingTargets.map(t => t.id), 0) + 1,
+      name: name.trim(),
+      host: host.trim(),
+      group: group.trim(),
+      enabled: true
+    };
+    
+    pingTargets.push(newTarget);
+    savePingTargets();
+    
+    res.json({
+      success: true,
+      message: 'Ping target added successfully',
+      target: newTarget
+    });
+  } catch (err) {
+    console.error('Error adding ping target:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// API to delete ping target
+app.delete('/api/ping-targets/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const index = pingTargets.findIndex(target => target.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Ping target not found' });
+    }
+    
+    pingTargets.splice(index, 1);
+    savePingTargets();
+    
+    res.json({
+      success: true,
+      message: 'Ping target deleted successfully'
+    });
+  } catch (err) {
+    console.error('Error deleting ping target:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// API to toggle ping target status
+app.patch('/api/ping-targets/:id/toggle', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const target = pingTargets.find(target => target.id === id);
+    
+    if (!target) {
+      return res.status(404).json({ error: 'Ping target not found' });
+    }
+    
+    target.enabled = !target.enabled;
+    savePingTargets();
+    
+    res.json({
+      success: true,
+      message: 'Ping target status updated successfully',
+      target: target
+    });
+  } catch (err) {
+    console.error('Error toggling ping target:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// API to perform ping test
+app.post('/api/ping-test', async (req, res) => {
+  try {
+    const { host } = req.body;
+    
+    if (!host) {
+      return res.status(400).json({ error: 'Host is required' });
+    }
+    
+    const result = await ping.promise.probe(host, {
+      timeout: 5,
+      min_reply: 1,
+      extra: ['-c', '3'] // Send 3 packets
+    });
+    
+    res.json({
+      success: true,
+      host: host,
+      alive: result.alive,
+      time: result.time,
+      packetLoss: result.packetLoss,
+      output: result.output
+    });
+  } catch (err) {
+    console.error('Error performing ping test:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Route for login page
@@ -182,7 +344,7 @@ app.get('/api/settings', (req, res) => {
 // API to update settings
 app.post('/api/settings', (req, res) => {
   try {
-    const { pollingIntervalSeconds, dataRetentionDays } = req.body;
+    const { pollingIntervalSeconds, pingIntervalSeconds, dataRetentionDays } = req.body;
     
     if (pollingIntervalSeconds) {
       if (pollingIntervalSeconds < 10) {
@@ -191,6 +353,18 @@ app.post('/api/settings', (req, res) => {
       // Convert seconds to milliseconds
       const newInterval = pollingIntervalSeconds * 1000;
       settings.pollingInterval = newInterval;
+    }
+    
+    if (pingIntervalSeconds) {
+      if (pingIntervalSeconds < 5) {
+        return res.status(400).json({ error: 'Ping interval must be at least 5 seconds' });
+      }
+      if (pingIntervalSeconds > 300) {
+        return res.status(400).json({ error: 'Ping interval cannot exceed 300 seconds' });
+      }
+      // Convert seconds to milliseconds
+      const newPingInterval = pingIntervalSeconds * 1000;
+      settings.pingInterval = newPingInterval;
     }
     
     if (dataRetentionDays !== undefined) {
@@ -218,6 +392,8 @@ app.post('/api/settings', (req, res) => {
       settings: {
         pollingInterval: settings.pollingInterval,
         pollingIntervalSeconds: settings.pollingInterval / 1000,
+        pingInterval: settings.pingInterval,
+        pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30,
         dataRetention: settings.dataRetention
       }
     });

@@ -43,6 +43,10 @@
             <i class="fas fa-gauge-high w-5"></i>
             <span>Bandwidth Monitor</span>
           </a>
+          <a href="/ping" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
+            <i class="fas fa-network-wired w-5"></i>
+            <span>Ping Monitor</span>
+          </a>
           <a href="/devices" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium transition-all hover:shadow-lg">
             <i class="fas fa-server w-5"></i>
             <span>Devices</span>
@@ -322,7 +326,66 @@
     </div>
   </div>
 
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
   <script>
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 3000) {
+      const toastContainer = document.getElementById('toast-container');
+
+      const toast = document.createElement('div');
+      toast.className = `flex items-center p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full max-w-sm`;
+
+      let iconClass = '';
+      let bgColor = '';
+
+      switch(type) {
+        case 'success':
+          iconClass = 'fas fa-check-circle';
+          bgColor = 'bg-green-500';
+          break;
+        case 'error':
+          iconClass = 'fas fa-exclamation-circle';
+          bgColor = 'bg-red-500';
+          break;
+        case 'warning':
+          iconClass = 'fas fa-exclamation-triangle';
+          bgColor = 'bg-yellow-500';
+          break;
+        default:
+          iconClass = 'fas fa-info-circle';
+          bgColor = 'bg-blue-500';
+      }
+
+      toast.classList.add(bgColor, 'text-white');
+
+      toast.innerHTML = `
+        <i class="${iconClass} mr-3"></i>
+        <span class="flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-3 hover:opacity-75">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 10);
+
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (toast.parentElement) {
+            toast.remove();
+          }
+        }, 300);
+      }, duration);
+    }
+
     const devices = <%- JSON.stringify(devices) %>;
     let currentDeviceData = null;
 
@@ -399,7 +462,7 @@
       
       // Validate form
       if (!name || !host || !community) {
-        alert('Please fill in all fields');
+        showToast('Please fill in all fields', 'warning');
         return;
       }
 
@@ -435,7 +498,7 @@
 
       } catch (err) {
         console.error('Error discovering interfaces:', err);
-        alert('Failed to discover interfaces. Please check the host IP and SNMP community.');
+        showToast('Failed to discover interfaces. Please check the host IP and SNMP community.', 'error');
       } finally {
         this.disabled = false;
         this.textContent = '➜ Next: Update Interfaces';
@@ -524,7 +587,7 @@
       }));
 
       if (selectedInterfaces.length === 0) {
-        alert('Please select at least one interface');
+        showToast('Please select at least one interface', 'warning');
         return;
       }
 
@@ -579,7 +642,7 @@
       
       // Validate form
       if (!currentDeviceData.id || !currentDeviceData.name || !currentDeviceData.host || !currentDeviceData.community) {
-        alert('Please fill in all fields');
+        showToast('Please fill in all fields', 'warning');
         return;
       }
 
@@ -615,7 +678,7 @@
 
       } catch (err) {
         console.error('Error discovering interfaces:', err);
-        alert('Failed to discover interfaces. Please check the host IP and SNMP community.');
+        showToast('Failed to discover interfaces. Please check the host IP and SNMP community.', 'error');
       } finally {
         this.disabled = false;
         this.textContent = '➜ Next: Select Interfaces';
@@ -674,7 +737,7 @@
       }));
 
       if (selectedInterfaces.length === 0) {
-        alert('Please select at least one interface');
+        showToast('Please select at least one interface', 'warning');
         return;
       }
 

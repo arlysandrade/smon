@@ -9,6 +9,7 @@
 ## ✨ Fitur Utama
 
 - 🔍 **Real-time Bandwidth Monitoring** - Pantau traffic RX/TX secara real-time
+- 🖥️ **Ping Monitoring** - Monitor konektivitas jaringan dengan interval yang dapat dikonfigurasi
 - 🖥️ **Multi-Device Support** - Monitor multiple network devices simultaneously
 - 📱 **Responsive Design** - Akses dari desktop dan mobile device
 - 📊 **Advanced Analytics** - Visualisasi data dengan Chart.js
@@ -76,6 +77,11 @@ Dashboard utama menampilkan overview sistem dan informasi real-time.
 
 Monitoring bandwidth real-time dengan grafik RX/TX untuk setiap interface.
 
+### Ping Monitor
+![Ping Monitor](screenshots/SMon%20-%20Ping%20Monitor.png)
+
+Monitoring konektivitas jaringan dengan status real-time dan konfigurasi interval yang dapat disesuaikan.
+
 ### Devices Management
 ![Devices Management](screenshots/SMon%20-%20Devices.png)
 
@@ -122,10 +128,12 @@ graphts/
 ├── app.js                 # Main application file
 ├── config.json           # SNMP devices configuration
 ├── settings.json         # Application settings
+├── ping-targets.json     # Ping monitoring targets
 ├── package.json          # Dependencies and scripts
 ├── views/                # EJS templates
 │   ├── index.ejs        # Dashboard page
 │   ├── monitoring.ejs   # Bandwidth monitor page
+│   ├── ping.ejs         # Ping monitoring page
 │   ├── devices.ejs      # Device management page
 │   ├── settings.ejs     # Settings page
 │   ├── login.ejs        # Login page
@@ -166,9 +174,43 @@ graphts/
 ```json
 {
   "pollingInterval": 60000,
+  "pingInterval": 30000,
   "dataRetention": 30
 }
 ```
+
+**Settings Configuration:**
+- `pollingInterval`: SNMP polling interval in milliseconds (default: 60000 = 1 minute)
+- `pingInterval`: Ping monitoring interval in milliseconds (default: 30000 = 30 seconds)
+- `dataRetention`: Data retention period in days (default: 30)
+
+### Ping Targets Configuration (`ping-targets.json`)
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Google DNS",
+    "host": "8.8.8.8",
+    "group": "DNS",
+    "enabled": true
+  },
+  {
+    "id": 2,
+    "name": "Cloudflare DNS",
+    "host": "1.1.1.1",
+    "group": "DNS",
+    "enabled": true
+  }
+]
+```
+
+**Ping Target Properties:**
+- `id`: Unique identifier for the target
+- `name`: Display name for the target
+- `host`: IP address or hostname to ping
+- `group`: Grouping category (e.g., "DNS", "Network", "Servers")
+- `enabled`: Whether the target is actively monitored
 
 ## 🔧 API Endpoints
 
@@ -184,6 +226,14 @@ graphts/
 ### Monitoring
 - `GET /monitoring` - Bandwidth monitoring page
 - `GET /api/data` - Bandwidth data API
+
+### Ping Monitoring
+- `GET /ping` - Ping monitoring page
+- `GET /api/ping-targets` - Ping targets list API
+- `POST /api/ping-targets` - Add ping target
+- `DELETE /api/ping-targets/:id` - Delete ping target
+- `PATCH /api/ping-targets/:id/toggle` - Enable/disable ping target
+- `POST /api/ping-test` - Test ping connectivity
 
 ### Device Management
 - `GET /devices` - Device management page

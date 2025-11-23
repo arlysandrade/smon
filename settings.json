@@ -1,4 +1,5 @@
 {
   "pollingInterval": 60000,
-  "dataRetention": 30
+  "dataRetention": 30,
+  "pingInterval": 30000
 }

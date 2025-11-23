@@ -43,6 +43,10 @@
             <i class="fas fa-gauge-high w-5"></i>
             <span>Bandwidth Monitor</span>
           </a>
+          <a href="/ping" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
+            <i class="fas fa-network-wired w-5"></i>
+            <span>Ping Monitor</span>
+          </a>
           <a href="/devices" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
             <i class="fas fa-server w-5"></i>
             <span>Devices</span>
@@ -230,6 +234,24 @@
               </div>
               <p class="text-xs text-gray-500 mt-1">Trigger alert when bandwidth exceeds</p>
             </div>
+
+            <!-- Ping Interval -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Ping Monitoring Interval</label>
+              <div class="flex gap-2">
+                <input type="number" 
+                       id="ping-interval-input"
+                       min="5" 
+                       step="5"
+                       value="<%= settings.pingInterval ? settings.pingInterval / 1000 : 30 %>"
+                       class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="flex items-center text-gray-400">seconds</span>
+                <button id="save-ping-interval-btn" class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-500 hover:to-green-600 transition-all font-medium text-sm">
+                  <i class="fas fa-check mr-1"></i>Save
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">How often to ping network targets (5-300 seconds)</p>
+            </div>
           </div>
 
           <!-- Divider -->
@@ -304,7 +326,66 @@
     </div>
   </div>
 
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
   <script>
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 3000) {
+      const toastContainer = document.getElementById('toast-container');
+
+      const toast = document.createElement('div');
+      toast.className = `flex items-center p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full max-w-sm`;
+
+      let iconClass = '';
+      let bgColor = '';
+
+      switch(type) {
+        case 'success':
+          iconClass = 'fas fa-check-circle';
+          bgColor = 'bg-green-500';
+          break;
+        case 'error':
+          iconClass = 'fas fa-exclamation-circle';
+          bgColor = 'bg-red-500';
+          break;
+        case 'warning':
+          iconClass = 'fas fa-exclamation-triangle';
+          bgColor = 'bg-yellow-500';
+          break;
+        default:
+          iconClass = 'fas fa-info-circle';
+          bgColor = 'bg-blue-500';
+      }
+
+      toast.classList.add(bgColor, 'text-white');
+
+      toast.innerHTML = `
+        <i class="${iconClass} mr-3"></i>
+        <span class="flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-3 hover:opacity-75">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 10);
+
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (toast.parentElement) {
+            toast.remove();
+          }
+        }, 300);
+      }, duration);
+    }
+
     // Initialize mobile menu
     document.addEventListener('DOMContentLoaded', function() {
       const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -326,6 +407,8 @@
 
     const pollingIntervalInput = document.getElementById('polling-interval-input');
     const saveIntervalBtn = document.getElementById('save-interval-btn');
+    const pingIntervalInput = document.getElementById('ping-interval-input');
+    const savePingIntervalBtn = document.getElementById('save-ping-interval-btn');
     const dataRetentionInput = document.getElementById('data-retention-input');
     const saveRetentionBtn = document.getElementById('save-retention-btn');
     const saveInterfacesBtn = document.getElementById('save-interfaces-btn');
@@ -393,6 +476,50 @@
       } finally {
         saveIntervalBtn.disabled = false;
         saveIntervalBtn.classList.remove('opacity-50');
+      }
+    });
+
+    // Save ping interval
+    savePingIntervalBtn.addEventListener('click', async function() {
+      const seconds = parseInt(pingIntervalInput.value);
+
+      if (!seconds || seconds < 5) {
+        showToast('Ping interval must be at least 5 seconds', 'warning');
+        return;
+      }
+
+      if (seconds > 300) {
+        showToast('Ping interval cannot exceed 300 seconds (5 minutes)', 'warning');
+        return;
+      }
+
+      savePingIntervalBtn.disabled = true;
+      savePingIntervalBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Saving...';
+
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pingIntervalSeconds: seconds })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update settings');
+        }
+
+        const data = await response.json();
+        showToast(`✓ Ping interval updated to ${seconds} seconds`, 'success');
+        
+        // Refresh settings after 2 seconds
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } catch (err) {
+        console.error('Error:', err);
+        showToast('✗ Failed to update ping interval', 'error');
+      } finally {
+        savePingIntervalBtn.disabled = false;
+        savePingIntervalBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Save';
       }
     });
 
