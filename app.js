@@ -4,6 +4,7 @@ const fs = require('fs');
 const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 const snmp = require('net-snmp');
 const ping = require('ping');
+const TelegramBot = require('node-telegram-bot-api');
 const os = require('os');
 
 const app = express();
@@ -182,11 +183,126 @@ function processCpuData(deviceId, device, cpuValue, timestamp = new Date()) {
     writeApi.writePoint(cpuPoint);
     writeApi.close().then(() => {
       console.log(`[${deviceId}] CPU data written: ${cpuValue}%`);
+      
+      // Send high CPU notification if enabled
+      notifyHighCpu(deviceId, device.name, cpuValue);
     }).catch(err => {
       console.error('InfluxDB CPU write error:', err);
     });
   } catch (err) {
     console.error('Error creating CPU write API:', err);
+  }
+}
+
+// Telegram notification functions
+function sendTelegramMessage(message) {
+  if (!telegramBot || !settings.telegram || !settings.telegram.enabled || !settings.telegram.chatId) {
+    return;
+  }
+
+  try {
+    telegramBot.sendMessage(settings.telegram.chatId, message, { parse_mode: 'HTML' })
+      .then(() => {
+        console.log('[TELEGRAM] Message sent successfully');
+      })
+      .catch(error => {
+        console.error('[TELEGRAM] Failed to send message:', error.message);
+      });
+  } catch (error) {
+    console.error('[TELEGRAM] Error sending message:', error.message);
+  }
+}
+
+function notifyDeviceStatus(deviceId, deviceName, status, details = '') {
+  if (!settings.telegram || !settings.telegram.enabled) return;
+
+  const timestamp = new Date().toLocaleString('id-ID');
+  let message = '';
+
+  if (status === 'up' && settings.telegram.notifyOnDeviceUp) {
+    message = `🟢 <b>Device UP</b>\n\n` +
+              `📍 <b>Device:</b> ${deviceName} (${deviceId})\n` +
+              `⏰ <b>Time:</b> ${timestamp}\n` +
+              `📊 <b>Status:</b> Device is now online\n` +
+              (details ? `ℹ️ <b>Details:</b> ${details}` : '');
+  } else if (status === 'down' && settings.telegram.notifyOnDeviceDown) {
+    message = `🔴 <b>Device DOWN</b>\n\n` +
+              `📍 <b>Device:</b> ${deviceName} (${deviceId})\n` +
+              `⏰ <b>Time:</b> ${timestamp}\n` +
+              `📊 <b>Status:</b> Device is offline\n` +
+              (details ? `ℹ️ <b>Details:</b> ${details}` : '');
+  }
+
+  if (message) {
+    sendTelegramMessage(message);
+  }
+}
+
+function notifyHighCpu(deviceId, deviceName, cpuValue) {
+  if (!settings.telegram || !settings.telegram.enabled || !settings.telegram.notifyOnHighCpu) return;
+
+  const threshold = settings.telegram.cpuThreshold || 80;
+  if (cpuValue >= threshold) {
+    const timestamp = new Date().toLocaleString('id-ID');
+    const message = `⚠️ <b>High CPU Usage Alert</b>\n\n` +
+                    `📍 <b>Device:</b> ${deviceName} (${deviceId})\n` +
+                    `⏰ <b>Time:</b> ${timestamp}\n` +
+                    `📊 <b>CPU Usage:</b> ${cpuValue}%\n` +
+                    `🎯 <b>Threshold:</b> ${threshold}%\n` +
+                    `🚨 <b>Status:</b> CPU usage is above threshold!`;
+
+    sendTelegramMessage(message);
+  }
+}
+
+function notifyPingStatus(targetId, targetName, targetHost, status, latency = null, packetLoss = null) {
+  if (!settings.telegram || !settings.telegram.enabled) return;
+
+  const timestamp = new Date().toLocaleString('id-ID');
+  let message = '';
+  let shouldNotify = false;
+
+  if (status === 'down' && settings.telegram.notifyOnPingDown) {
+    message = `🔴 <b>Ping Target Down Alert</b>\n\n` +
+              `📍 <b>Target:</b> ${targetName} (${targetHost})\n` +
+              `⏰ <b>Time:</b> ${timestamp}\n` +
+              `❌ <b>Status:</b> Target is unreachable\n` +
+              `📊 <b>Packet Loss:</b> 100%\n` +
+              `🚨 <b>Alert:</b> Ping target is down!`;
+    shouldNotify = true;
+  } else if (status === 'up' && settings.telegram.notifyOnPingUp) {
+    message = `🟢 <b>Ping Target Up Alert</b>\n\n` +
+              `📍 <b>Target:</b> ${targetName} (${targetHost})\n` +
+              `⏰ <b>Time:</b> ${timestamp}\n` +
+              `✅ <b>Status:</b> Target is back online\n` +
+              `📊 <b>Latency:</b> ${latency}ms\n` +
+              `📊 <b>Packet Loss:</b> ${packetLoss}%\n` +
+              `🎉 <b>Alert:</b> Ping target recovered!`;
+    shouldNotify = true;
+  } else if (status === 'timeout' && settings.telegram.notifyOnPingTimeout) {
+    message = `⏰ <b>Ping Timeout Alert</b>\n\n` +
+              `📍 <b>Target:</b> ${targetName} (${targetHost})\n` +
+              `⏰ <b>Time:</b> ${timestamp}\n` +
+              `⏳ <b>Status:</b> Ping request timed out\n` +
+              `📊 <b>Packet Loss:</b> 100%\n` +
+              `🚨 <b>Alert:</b> Ping timeout detected!`;
+    shouldNotify = true;
+  } else if (status === 'high_latency' && settings.telegram.notifyOnPingHighLatency && latency !== null) {
+    const threshold = settings.telegram.pingLatencyThreshold || 50;
+    if (latency >= threshold) {
+      message = `🐌 <b>High Ping Latency Alert</b>\n\n` +
+                `📍 <b>Target:</b> ${targetName} (${targetHost})\n` +
+                `⏰ <b>Time:</b> ${timestamp}\n` +
+                `📊 <b>Latency:</b> ${latency}ms\n` +
+                `🎯 <b>Threshold:</b> ${threshold}ms\n` +
+                `📊 <b>Packet Loss:</b> ${packetLoss}%\n` +
+                `🚨 <b>Alert:</b> Ping latency is above threshold!`;
+      shouldNotify = true;
+    }
+  }
+
+  if (shouldNotify && message) {
+    sendTelegramMessage(message);
   }
 }
 
@@ -266,7 +382,7 @@ app.use(cookieParser());
 // Authentication middleware
 const requireAuth = (req, res, next) => {
   const isAuthenticated = req.cookies.authenticated === 'true';
-  if (isAuthenticated || req.path === '/login' || req.path === '/about') {
+  if (isAuthenticated || req.path === '/login' || req.path === '/about' || req.path === '/status' || req.path.startsWith('/api/')) {
     next();
   } else {
     res.redirect('/login');
@@ -303,14 +419,6 @@ if (fs.existsSync(settingsFile)) {
       token: 'Sag1KBQNatpHmaMDoCDLB1Vrt-QAMTfwL_K13gRYjUihTrzlRSOdoDB9HwH6imIJpSMz4XgfG9AEAL4FtwUZpQ=='
     };
   }
-  // Ensure telegram object exists
-  if (!settings.telegram) {
-    settings.telegram = {
-      enabled: false,
-      botToken: '',
-      chatId: ''
-    };
-  }
 } else {
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
 }
@@ -319,12 +427,26 @@ if (fs.existsSync(settingsFile)) {
 const client = new InfluxDB({ url: settings.influxdb.url, token: settings.influxdb.token });
 const queryApi = client.getQueryApi(settings.influxdb.org);
 
+// Telegram Bot initialization
+let telegramBot = null;
+if (settings.telegram && settings.telegram.enabled && settings.telegram.botToken) {
+  try {
+    telegramBot = new TelegramBot(settings.telegram.botToken, { polling: false });
+    console.log('[TELEGRAM] Bot initialized successfully');
+  } catch (error) {
+    console.error('[TELEGRAM] Failed to initialize bot:', error.message);
+  }
+}
+
 // Ping configuration
 let pingTargets = [
   { id: 1, name: 'Google DNS', host: '8.8.8.8', group: 'DNS', enabled: true },
   { id: 2, name: 'Cloudflare DNS', host: '1.1.1.1', group: 'DNS', enabled: true },
   { id: 3, name: 'Local Gateway', host: '192.168.1.1', group: 'Network', enabled: true }
 ];
+
+// Ping status tracking for notifications
+let pingStatusHistory = {}; // Track previous ping status for each target
 
 // Load or create ping targets file
 const pingTargetsFile = './ping-targets.json';
@@ -357,9 +479,6 @@ function savePingHistory() {
   fs.writeFileSync(pingHistoryFile, JSON.stringify(pingHistory, null, 2));
 }
 
-// Global state tracking for ping notifications
-const pingStates = new Map();
-
 // Helper function to add ping result to database
 function addPingToDatabase(targetId, result) {
   try {
@@ -379,122 +498,12 @@ function addPingToDatabase(targetId, result) {
     }).catch(err => {
       console.error('InfluxDB ping write error:', err);
     });
-
-    // Handle notifications
-    handlePingNotifications(targetId, result);
   } catch (err) {
     console.error('Error creating ping write API:', err);
   }
 }
 
-// Helper function to handle ping notifications
-function handlePingNotifications(targetId, result) {
-  if (!settings.pingNotifications || !settings.pingNotifications.enabled) {
-    return;
-  }
-
-  const target = pingTargets.find(t => t.id === targetId);
-  if (!target) return;
-
-  const currentState = {
-    alive: result.alive,
-    latency: parseFloat(result.time) || 0,
-    packetLoss: parseFloat(result.packetLoss) || 0
-  };
-
-  const previousState = pingStates.get(targetId);
-
-  // Initialize state if this is the first ping
-  if (!previousState) {
-    pingStates.set(targetId, currentState);
-    return;
-  }
-
-  let notificationMessage = null;
-
-  // Check for down notification
-  if (settings.pingNotifications.notifyOnDown && previousState.alive && !currentState.alive) {
-    notificationMessage = `🚨 <b>PING DOWN ALERT</b>\n\n` +
-      `📍 <b>Target:</b> ${target.name}\n` +
-      `🌐 <b>Host:</b> ${target.host}\n` +
-      `📊 <b>Group:</b> ${target.group}\n` +
-      `❌ <b>Status:</b> DOWN (was UP)\n` +
-      `📈 <b>Last Latency:</b> ${previousState.latency}ms\n` +
-      `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-  }
-
-  // Check for recovery notification (back up)
-  else if (settings.pingNotifications.notifyOnDown && !previousState.alive && currentState.alive) {
-    notificationMessage = `✅ <b>PING RECOVERY</b>\n\n` +
-      `📍 <b>Target:</b> ${target.name}\n` +
-      `🌐 <b>Host:</b> ${target.host}\n` +
-      `📊 <b>Group:</b> ${target.group}\n` +
-      `✅ <b>Status:</b> UP (was DOWN)\n` +
-      `📈 <b>Current Latency:</b> ${currentState.latency}ms\n` +
-      `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-  }
-
-  // Check for timeout notification
-  else if (settings.pingNotifications.notifyOnTimeout && currentState.packetLoss === 100 && previousState.packetLoss < 100) {
-    notificationMessage = `⏰ <b>PING TIMEOUT ALERT</b>\n\n` +
-      `📍 <b>Target:</b> ${target.name}\n` +
-      `🌐 <b>Host:</b> ${target.host}\n` +
-      `📊 <b>Group:</b> ${target.group}\n` +
-      `⏰ <b>Status:</b> 100% Packet Loss (Timeout)\n` +
-      `📈 <b>Previous Loss:</b> ${previousState.packetLoss}%\n` +
-      `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-  }
-
-  // Check for high latency notification
-  else if (settings.pingNotifications.notifyOnHighLatency &&
-           currentState.alive &&
-           currentState.latency > (settings.pingNotifications.latencyThreshold || 50) &&
-           previousState.latency <= (settings.pingNotifications.latencyThreshold || 50)) {
-    notificationMessage = `⚡ <b>HIGH LATENCY ALERT</b>\n\n` +
-      `📍 <b>Target:</b> ${target.name}\n` +
-      `🌐 <b>Host:</b> ${target.host}\n` +
-      `📊 <b>Group:</b> ${target.group}\n` +
-      `⚡ <b>Latency:</b> ${currentState.latency}ms (Threshold: ${settings.pingNotifications.latencyThreshold || 50}ms)\n` +
-      `📈 <b>Previous:</b> ${previousState.latency}ms\n` +
-      `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-  }
-
-  // Send notification if there's a message
-  if (notificationMessage) {
-    sendTelegramNotification(notificationMessage);
-  }
-
-  // Update state
-  pingStates.set(targetId, currentState);
-}
-async function sendTelegramNotification(message) {
-  if (!settings.telegram || !settings.telegram.enabled || !settings.telegram.botToken || !settings.telegram.chatId) {
-    return;
-  }
-
-  try {
-    const telegramUrl = `https://api.telegram.org/bot${settings.telegram.botToken}/sendMessage`;
-    const response = await fetch(telegramUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: settings.telegram.chatId,
-        text: message,
-        parse_mode: 'HTML'
-      })
-    });
-
-    if (!response.ok) {
-      console.error('[TELEGRAM] Failed to send notification:', response.status, response.statusText);
-    } else {
-      console.log('[TELEGRAM] Notification sent successfully');
-    }
-  } catch (error) {
-    console.error('[TELEGRAM] Error sending notification:', error);
-  }
-}
+// Helper function to cleanup old ping data from database (older than 1 month)
 async function cleanupOldPingData() {
   try {
     console.log('[PING CLEANUP] Ping data cleanup is currently disabled due to InfluxDB API compatibility issues');
@@ -579,6 +588,13 @@ app.get('/settings', (req, res) => {
 // Route for about page
 app.get('/about', (req, res) => {
   res.render('about');
+});
+
+// Route for public status page (no authentication required)
+app.get('/status', (req, res) => {
+  res.render('status', {
+    title: 'System Status - SMon'
+  });
 });
 
 // Route for ping monitoring page
@@ -865,9 +881,7 @@ app.get('/api/settings', (req, res) => {
   res.json({
     pollingInterval: settings.pollingInterval,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
-    dataRetention: settings.dataRetention || 365,
-    pingNotifications: settings.pingNotifications,
-    telegram: settings.telegram
+    dataRetention: settings.dataRetention || 365
   });
 });
 
@@ -966,77 +980,6 @@ app.post('/api/settings/ping-notifications', (req, res) => {
   }
 });
 
-// API to update Telegram bot settings
-app.post('/api/settings/telegram', (req, res) => {
-  try {
-    const { enabled, botToken, chatId } = req.body;
-
-    if (!settings.telegram) {
-      settings.telegram = {};
-    }
-
-    settings.telegram.enabled = enabled !== undefined ? enabled : false;
-    settings.telegram.botToken = botToken || '';
-    settings.telegram.chatId = chatId || '';
-
-    saveSettings();
-
-    res.json({
-      success: true,
-      telegram: settings.telegram
-    });
-  } catch (err) {
-    console.error('Error updating Telegram settings:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// API to test Telegram bot connection
-app.post('/api/settings/telegram/test', async (req, res) => {
-  try {
-    const { botToken, chatId } = req.body;
-
-    if (!botToken || !chatId) {
-      return res.status(400).json({ error: 'Bot token and chat ID are required' });
-    }
-
-    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-    const testMessage = `🧪 <b>Telegram Bot Test</b>\n\n` +
-      `✅ <b>Connection successful!</b>\n` +
-      `🤖 <b>Bot Token:</b> ${botToken.substring(0, 10)}...\n` +
-      `💬 <b>Chat ID:</b> ${chatId}\n` +
-      `📅 <b>Time:</b> ${new Date().toLocaleString()}`;
-
-    const response = await fetch(telegramUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: testMessage,
-        parse_mode: 'HTML'
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return res.status(400).json({
-        error: 'Failed to send test message',
-        details: errorData.description || 'Unknown error'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Test message sent successfully'
-    });
-  } catch (err) {
-    console.error('Error testing Telegram bot:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
 // API to test InfluxDB connection
 app.post('/api/settings/influxdb/test', async (req, res) => {
   try {
@@ -1118,6 +1061,107 @@ app.post('/api/settings/influxdb', (req, res) => {
   } catch (err) {
     console.error('Error saving InfluxDB settings:', err);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// API to update Telegram settings
+app.post('/api/settings/telegram', (req, res) => {
+  try {
+    const { 
+      enabled, 
+      botToken, 
+      chatId, 
+      notifyOnDeviceDown, 
+      notifyOnDeviceUp, 
+      notifyOnHighCpu, 
+      cpuThreshold, 
+      notifyOnInterfaceDown,
+      notifyOnPingDown,
+      notifyOnPingUp,
+      notifyOnPingTimeout,
+      notifyOnPingHighLatency,
+      pingLatencyThreshold
+    } = req.body;
+    
+    if (!settings.telegram) {
+      settings.telegram = {};
+    }
+    
+    settings.telegram.enabled = enabled === true || enabled === 'true';
+    settings.telegram.botToken = botToken || '';
+    settings.telegram.chatId = chatId || '';
+    settings.telegram.notifyOnDeviceDown = notifyOnDeviceDown === true || notifyOnDeviceDown === 'true';
+    settings.telegram.notifyOnDeviceUp = notifyOnDeviceUp === true || notifyOnDeviceUp === 'true';
+    settings.telegram.notifyOnHighCpu = notifyOnHighCpu === true || notifyOnHighCpu === 'true';
+    settings.telegram.cpuThreshold = parseInt(cpuThreshold) || 80;
+    settings.telegram.notifyOnInterfaceDown = notifyOnInterfaceDown === true || notifyOnInterfaceDown === 'true';
+    settings.telegram.notifyOnPingDown = notifyOnPingDown === true || notifyOnPingDown === 'true';
+    settings.telegram.notifyOnPingUp = notifyOnPingUp === true || notifyOnPingUp === 'true';
+    settings.telegram.notifyOnPingTimeout = notifyOnPingTimeout === true || notifyOnPingTimeout === 'true';
+    settings.telegram.notifyOnPingHighLatency = notifyOnPingHighLatency === true || notifyOnPingHighLatency === 'true';
+    settings.telegram.pingLatencyThreshold = parseInt(pingLatencyThreshold) || 50;
+    
+    saveSettings();
+    
+    // Reinitialize Telegram bot if settings changed
+    if (settings.telegram.enabled && settings.telegram.botToken) {
+      try {
+        telegramBot = new TelegramBot(settings.telegram.botToken, { polling: false });
+        console.log('[TELEGRAM] Bot reinitialized successfully');
+      } catch (error) {
+        console.error('[TELEGRAM] Failed to reinitialize bot:', error.message);
+      }
+    } else {
+      telegramBot = null;
+      console.log('[TELEGRAM] Bot disabled');
+    }
+    
+    res.json({
+      success: true,
+      message: 'Telegram settings saved successfully',
+      telegram: {
+        enabled: settings.telegram.enabled,
+        botToken: settings.telegram.botToken ? '***' : '', // Don't send token back
+        chatId: settings.telegram.chatId,
+        notifyOnDeviceDown: settings.telegram.notifyOnDeviceDown,
+        notifyOnDeviceUp: settings.telegram.notifyOnDeviceUp,
+        notifyOnHighCpu: settings.telegram.notifyOnHighCpu,
+        cpuThreshold: settings.telegram.cpuThreshold,
+        notifyOnInterfaceDown: settings.telegram.notifyOnInterfaceDown,
+        notifyOnPingDown: settings.telegram.notifyOnPingDown,
+        notifyOnPingUp: settings.telegram.notifyOnPingUp,
+        notifyOnPingTimeout: settings.telegram.notifyOnPingTimeout,
+        notifyOnPingHighLatency: settings.telegram.notifyOnPingHighLatency,
+        pingLatencyThreshold: settings.telegram.pingLatencyThreshold
+      }
+    });
+  } catch (err) {
+    console.error('Error saving Telegram settings:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// API to test Telegram bot
+app.post('/api/settings/telegram/test', async (req, res) => {
+  try {
+    if (!telegramBot || !settings.telegram || !settings.telegram.enabled || !settings.telegram.chatId) {
+      return res.status(400).json({ error: 'Telegram bot is not configured or enabled' });
+    }
+    
+    const testMessage = `🧪 <b>Telegram Bot Test</b>\n\n` +
+                        `✅ <b>Status:</b> Bot is working correctly!\n` +
+                        `⏰ <b>Time:</b> ${new Date().toLocaleString('id-ID')}\n` +
+                        `🤖 <b>Bot:</b> SMon Monitoring System`;
+    
+    await telegramBot.sendMessage(settings.telegram.chatId, testMessage, { parse_mode: 'HTML' });
+    
+    res.json({
+      success: true,
+      message: 'Test message sent successfully'
+    });
+  } catch (err) {
+    console.error('Error testing Telegram bot:', err);
+    res.status(500).json({ error: 'Failed to send test message: ' + err.message });
   }
 });
 
@@ -1865,9 +1909,69 @@ function startPingMonitoring() {
       min_reply: 1,
       deadline: 10
     }).then(result => {
+      // Check for status changes and send notifications
+      const previousStatus = pingStatusHistory[target.id];
+      const currentLatency = parseFloat(result.time) || 0;
+      const currentPacketLoss = parseFloat(result.packetLoss) || 0;
+      const isAlive = result.alive;
+
+      // Initialize status history if not exists
+      if (!pingStatusHistory[target.id]) {
+        pingStatusHistory[target.id] = {
+          alive: isAlive,
+          lastLatency: currentLatency,
+          lastPacketLoss: currentPacketLoss,
+          lastCheck: Date.now()
+        };
+      }
+
+      // Check for status changes
+      if (previousStatus) {
+        // Target went from down to up
+        if (!previousStatus.alive && isAlive) {
+          notifyPingStatus(target.id, target.name, target.host, 'up', currentLatency, currentPacketLoss);
+        }
+        // Target went from up to down
+        else if (previousStatus.alive && !isAlive) {
+          notifyPingStatus(target.id, target.name, target.host, 'down', currentLatency, currentPacketLoss);
+        }
+        // Check for timeout (high packet loss)
+        else if (isAlive && currentPacketLoss >= 100) {
+          notifyPingStatus(target.id, target.name, target.host, 'timeout', currentLatency, currentPacketLoss);
+        }
+        // Check for high latency
+        else if (isAlive && currentLatency > 0) {
+          notifyPingStatus(target.id, target.name, target.host, 'high_latency', currentLatency, currentPacketLoss);
+        }
+      }
+
+      // Update status history
+      pingStatusHistory[target.id] = {
+        alive: isAlive,
+        lastLatency: currentLatency,
+        lastPacketLoss: currentPacketLoss,
+        lastCheck: Date.now()
+      };
+
       addPingToDatabase(target.id, result);
     }).catch(err => {
       console.error(`[PING] Error pinging ${target.name} (${target.host}):`, err);
+
+      // Check for status changes on error
+      const previousStatus = pingStatusHistory[target.id];
+      if (previousStatus && previousStatus.alive) {
+        // Target was alive but now has error (treat as down)
+        notifyPingStatus(target.id, target.name, target.host, 'down', 0, 100);
+      }
+
+      // Update status history for failed ping
+      pingStatusHistory[target.id] = {
+        alive: false,
+        lastLatency: 0,
+        lastPacketLoss: 100,
+        lastCheck: Date.now()
+      };
+
       // Still record the failed ping
       addPingToDatabase(target.id, {
         time: 0,

@@ -1,7 +1,7 @@
 {
   "pollingInterval": 300000,
-  "pingInterval": 60000,
-  "dataRetention": 730,
+  "pingInterval": 120000,
+  "dataRetention": 364,
   "influxdb": {
     "url": "http://localhost:8086",
     "org": "indobsd",
@@ -16,8 +16,18 @@
     "latencyThreshold": 50
   },
   "telegram": {
-    "enabled": false,
-    "botToken": "",
-    "chatId": ""
+    "enabled": true,
+    "botToken": "333436028:AAEbiV212wEec0jmk_rJBHPPtGeWUsl-Aes",
+    "chatId": "35324046",
+    "notifyOnDeviceDown": true,
+    "notifyOnDeviceUp": true,
+    "notifyOnHighCpu": true,
+    "cpuThreshold": 80,
+    "notifyOnInterfaceDown": false,
+    "notifyOnPingDown": true,
+    "notifyOnPingUp": true,
+    "notifyOnPingTimeout": true,
+    "notifyOnPingHighLatency": true,
+    "pingLatencyThreshold": 50
   }
 }
