@@ -150,12 +150,16 @@
                 Select Device
               </label>
               <select id="device-selector" class="w-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-slate-500/70">
-                <option value="">Choose a device...</option>
-                <% Object.entries(devices).forEach(([key, device]) => { %>
-                  <option value="<%= key %>" <%= key === selectedDevice ? 'selected' : '' %>>
-                    <%= device.name %>
-                  </option>
-                <% }); %>
+                <% if (Object.keys(devices).length === 0) { %>
+                  <option value="" disabled selected>No devices configured</option>
+                <% } else { %>
+                  <option value="">Choose a device...</option>
+                  <% Object.entries(devices).forEach(([key, device]) => { %>
+                    <option value="<%= key %>" <%= key === selectedDevice ? 'selected' : '' %>>
+                      <%= device.name %>
+                    </option>
+                  <% }); %>
+                <% } %>
               </select>
             </div>
 
@@ -167,7 +171,7 @@
                 </div>
                 Select Interface
               </label>
-              <select id="interface-selector" class="w-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 hover:border-slate-500/70">
+              <select id="interface-selector" class="w-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 hover:border-slate-500/70 <%= Object.keys(devices).length === 0 ? 'disabled opacity-50' : '' %>">
                 <option value="all">All Selected Interfaces</option>
               </select>
             </div>
@@ -180,7 +184,7 @@
                 </div>
                 Time Range
               </label>
-              <select id="time-range-selector" class="w-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-slate-500/70">
+              <select id="time-range-selector" class="w-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 hover:border-slate-500/70 <%= Object.keys(devices).length === 0 ? 'disabled opacity-50' : '' %>">
                 <option value="-1h" selected>Last 1 Hour</option>
                 <option value="-24h">Last 24 Hours</option>
                 <option value="-7d">Last 7 Days</option>
@@ -193,11 +197,11 @@
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-300 opacity-0">Actions</label>
               <div class="flex items-end gap-3">
-                <button onclick="loadChartData()" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
+                <button onclick="loadChartData()" class="<%= Object.keys(devices).length === 0 ? 'opacity-50 cursor-not-allowed' : '' %> flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 <%= Object.keys(devices).length === 0 ? 'disabled' : '' %>">
                   <i class="fas fa-sync-alt"></i>
                   <span>Load Data</span>
                 </button>
-                <button onclick="generatePDFReport()" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-purple-500/25 hover:-translate-y-0.5">
+                <button onclick="generatePDFReport()" class="<%= Object.keys(devices).length === 0 ? 'opacity-50 cursor-not-allowed' : '' %> flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-purple-500/25 hover:-translate-y-0.5 <%= Object.keys(devices).length === 0 ? 'disabled' : '' %>">
                   <i class="fas fa-file-pdf"></i>
                   <span>PDF Report</span>
                 </button>
@@ -224,21 +228,39 @@
         </div>
 
         <!-- Charts Container -->
-        <div id="charts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div id="charts-container" class="grid grid-cols-1 gap-6">
           <!-- Charts will be loaded here -->
-          <div class="col-span-full">
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-12 shadow-xl text-center hover:shadow-2xl transition-all duration-300">
-              <div class="w-20 h-20 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <i class="fas fa-chart-line text-gray-400 text-3xl"></i>
+          <% if (Object.keys(devices).length === 0) { %>
+            <div class="col-span-full text-center py-16">
+              <div class="max-w-md mx-auto">
+                <div class="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <i class="fas fa-server text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">No Devices Configured</h3>
+                <p class="text-gray-400 mb-6 leading-relaxed">
+                  No SNMP devices have been configured yet. Please add devices from the Device Management page to start monitoring bandwidth usage.
+                </p>
+                <a href="/devices" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
+                  <i class="fas fa-plus"></i>
+                  <span>Configure Devices</span>
+                </a>
               </div>
-              <h3 class="text-xl font-semibold text-white mb-2">No Data Loaded</h3>
-              <p class="text-gray-400 text-lg mb-6">Select a device and click "Load Data" to display bandwidth charts</p>
-              <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+            </div>
+          <% } else { %>
+            <div class="col-span-full">
+              <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-12 shadow-xl text-center hover:shadow-2xl transition-all duration-300">
+                <div class="w-20 h-20 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <i class="fas fa-chart-line text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-2">No Data Loaded</h3>
+                <p class="text-gray-400 text-lg mb-6">Select a device and click "Load Data" to display bandwidth charts</p>
+                <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <i class="fas fa-lightbulb text-yellow-400"></i>
                 <span>Choose your device and interface to start monitoring</span>
               </div>
             </div>
           </div>
+          <% } %>
         </div>
       </div>
     </div>
@@ -393,7 +415,7 @@
         .catch(err => console.error('Error loading interfaces:', err));
     }
 
-    function createInterfaceChart(interfaceName, rxData, txData) {
+    function createInterfaceChart(interfaceName, rxData, txData, noDataYet = false) {
       const container = document.getElementById('charts-container');
       if (!container) {
         console.error('Charts container not found!');
@@ -410,61 +432,62 @@
       
       // console.log(`Generated IDs: RX=${chartIdRx}, TX=${chartIdTx}`);
       
-      // Create RX card
-      const cardRx = document.createElement('div');
-      cardRx.className = 'bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300';
-      cardRx.innerHTML = `
+      // Create single card containing both RX and TX charts
+      const card = document.createElement('div');
+      card.className = 'bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300';
+      card.innerHTML = `
         <div class="mb-6">
           <div class="flex items-center gap-3 mb-2">
-            <div class="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg">
-              <i class="fas fa-arrow-down text-white"></i>
+            <div class="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg">
+              <i class="fas fa-chart-line text-white"></i>
             </div>
             <div>
-              <h3 class="text-lg font-bold text-white">${interfaceName} - RX</h3>
-              <p class="text-xs text-gray-400">Incoming Bandwidth</p>
+              <h3 class="text-lg font-bold text-white">${interfaceName}</h3>
+              <p class="text-xs text-gray-400">Bandwidth Monitoring</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 text-sm">
-            <span class="text-gray-400">Download Traffic</span>
-            <span class="text-green-400 font-semibold">(Mbps)</span>
+          <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span class="text-gray-400">RX (Download)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-amber-500 rounded-full"></div>
+              <span class="text-gray-400">TX (Upload)</span>
+            </div>
           </div>
         </div>
-        <div class="relative w-full" style="height: 280px;">
-          <canvas id="${chartIdRx}" class="w-full h-full"></canvas>
+        <div class="space-y-8">
+          <!-- RX Chart -->
+          <div class="relative w-full" style="height: 280px;">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="p-1 bg-gradient-to-br from-green-500 to-green-600 rounded shadow">
+                <i class="fas fa-arrow-down text-white text-xs"></i>
+              </div>
+              <span class="text-sm font-medium text-green-400">RX - Incoming Bandwidth</span>
+            </div>
+            <canvas id="${chartIdRx}" class="w-full h-full"></canvas>
+          </div>
+          
+          <!-- TX Chart -->
+          <div class="relative w-full" style="height: 280px;">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="p-1 bg-gradient-to-br from-amber-500 to-orange-500 rounded shadow">
+                <i class="fas fa-arrow-up text-white text-xs"></i>
+              </div>
+              <span class="text-sm font-medium text-amber-400">TX - Outgoing Bandwidth</span>
+            </div>
+            <canvas id="${chartIdTx}" class="w-full h-full"></canvas>
+          </div>
         </div>
       `;
-      container.appendChild(cardRx);
-      
-      // Create TX card
-      const cardTx = document.createElement('div');
-      cardTx.className = 'bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300';
-      cardTx.innerHTML = `
-        <div class="mb-6">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg shadow-lg">
-              <i class="fas fa-arrow-up text-white"></i>
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-white">${interfaceName} - TX</h3>
-              <p class="text-xs text-gray-400">Outgoing Bandwidth</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 text-sm">
-            <span class="text-gray-400">Upload Traffic</span>
-            <span class="text-amber-400 font-semibold">(Mbps)</span>
-          </div>
-        </div>
-        <div class="relative w-full" style="height: 280px;">
-          <canvas id="${chartIdTx}" class="w-full h-full"></canvas>
-        </div>
-      `;
-      container.appendChild(cardTx);
+      container.appendChild(card);
       
       // Create charts immediately after DOM elements are appended
-      createChartsForInterface(interfaceName, rxData, txData, chartIdRx, chartIdTx);
+      createChartsForInterface(interfaceName, rxData, txData, chartIdRx, chartIdTx, noDataYet);
     }
 
-    function createChartsForInterface(interfaceName, rxData, txData, chartIdRx, chartIdTx) {
+    function createChartsForInterface(interfaceName, rxData, txData, chartIdRx, chartIdTx, noDataYet = false) {
       // Destroy old charts if exist
       if (chartInstances[chartIdRx]) {
         chartInstances[chartIdRx].destroy();
@@ -488,15 +511,24 @@
       
       // Create RX chart (green line)
       const ctxRx = canvasRx.getContext('2d');
+      
+      // Prepare RX data
+      let rxChartData;
+      if (noDataYet || rxData.length === 0) {
+        rxChartData = [];
+      } else {
+        rxChartData = rxData.map(d => ({
+          x: new Date(d.time).getTime(),
+          y: parseFloat(d.value)
+        }));
+      }
+      
       chartInstances[chartIdRx] = new Chart(ctxRx, {
         type: 'line',
         data: {
           datasets: [{
             label: 'RX Bandwidth',
-            data: rxData.map(d => ({
-              x: new Date(d.time).getTime(),
-              y: parseFloat(d.value)
-            })),
+            data: rxChartData,
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.15)',
             borderWidth: 3,
@@ -512,11 +544,17 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              bottom: 20
+            }
+          },
           plugins: {
             legend: {
               display: false
             },
             tooltip: {
+              enabled: !noDataYet,
               backgroundColor: 'rgba(0, 0, 0, 0.9)',
               titleColor: '#10b981',
               bodyColor: '#ffffff',
@@ -597,20 +635,42 @@
             }
           },
           spanGaps: false
-        }
+        },
+        plugins: noDataYet ? [{
+          id: 'noDataMessage',
+          afterDraw: function(chart) {
+            const { ctx, width, height } = chart;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '16px system-ui, -apple-system, sans-serif';
+            ctx.fillText('Waiting for data...', width / 2, height / 2);
+            ctx.restore();
+          }
+        }] : []
       });
       
       // Create TX chart (orange line)
       const ctxTx = canvasTx.getContext('2d');
+      
+      // Prepare TX data
+      let txChartData;
+      if (noDataYet || txData.length === 0) {
+        txChartData = [];
+      } else {
+        txChartData = txData.map(d => ({
+          x: new Date(d.time).getTime(),
+          y: parseFloat(d.value)
+        }));
+      }
+      
       chartInstances[chartIdTx] = new Chart(ctxTx, {
         type: 'line',
         data: {
           datasets: [{
             label: 'TX Bandwidth',
-            data: txData.map(d => ({
-              x: new Date(d.time).getTime(),
-              y: parseFloat(d.value)
-            })),
+            data: txChartData,
             borderColor: '#f59e0b',
             backgroundColor: 'rgba(245, 158, 11, 0.15)',
             borderWidth: 3,
@@ -626,11 +686,17 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              bottom: 20
+            }
+          },
           plugins: {
             legend: {
               display: false
             },
             tooltip: {
+              enabled: !noDataYet,
               backgroundColor: 'rgba(0, 0, 0, 0.9)',
               titleColor: '#f59e0b',
               bodyColor: '#ffffff',
@@ -711,11 +777,223 @@
             }
           },
           spanGaps: false
-        }
+        },
+        plugins: noDataYet ? [{
+          id: 'noDataMessage',
+          afterDraw: function(chart) {
+            const { ctx, width, height } = chart;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '16px system-ui, -apple-system, sans-serif';
+            ctx.fillText('Waiting for data...', width / 2, height / 2);
+            ctx.restore();
+          }
+        }] : []
+      });
+    }
+
+    function createCpuChart(deviceId, cpuData, noDataYet = false) {
+      const container = document.getElementById('charts-container');
+      if (!container) {
+        console.error('Charts container not found!');
+        return;
+      }
+      
+      const chartIdCpu = `chart-${deviceId}-cpu`;
+      
+      // Create CPU card
+      const card = document.createElement('div');
+      card.className = 'bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-6 shadow-xl hover:shadow-2xl transition-all duration-300';
+      card.innerHTML = `
+        <div class="mb-6">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg">
+              <i class="fas fa-microchip text-white"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white">CPU Usage</h3>
+              <p class="text-xs text-gray-400">Device Performance</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="text-gray-400">Processor Utilization</span>
+            <span class="text-purple-400 font-semibold">(Percentage)</span>
+          </div>
+        </div>
+        <div class="relative w-full" style="height: 280px;">
+          <canvas id="${chartIdCpu}" class="w-full h-full"></canvas>
+        </div>
+      `;
+      container.appendChild(card);
+      
+      // Create CPU chart
+      createCpuChartInstance(deviceId, cpuData, chartIdCpu, noDataYet);
+    }
+
+    function createCpuChartInstance(deviceId, cpuData, chartIdCpu, noDataYet = false) {
+      // Destroy old chart if exists
+      if (chartInstances[chartIdCpu]) {
+        chartInstances[chartIdCpu].destroy();
+      }
+      
+      const canvasCpu = document.getElementById(chartIdCpu);
+      if (!canvasCpu) {
+        console.error(`Canvas element with ID '${chartIdCpu}' not found for device '${deviceId}'`);
+        return;
+      }
+      
+      // Create CPU chart (purple line)
+      const ctxCpu = canvasCpu.getContext('2d');
+      
+      // Prepare CPU data
+      let cpuChartData;
+      if (noDataYet || cpuData.length === 0) {
+        cpuChartData = [];
+      } else {
+        cpuChartData = cpuData.map(d => ({
+          x: new Date(d.time).getTime(),
+          y: parseFloat(d.value)
+        }));
+      }
+      
+      chartInstances[chartIdCpu] = new Chart(ctxCpu, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: 'CPU Usage',
+            data: cpuChartData,
+            borderColor: '#a855f7',
+            backgroundColor: 'rgba(168, 85, 247, 0.15)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#a855f7',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              bottom: 20
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: !noDataYet,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              titleColor: '#a855f7',
+              bodyColor: '#ffffff',
+              borderColor: '#a855f7',
+              borderWidth: 2,
+              padding: 12,
+              displayColors: false,
+              callbacks: {
+                label: function(context) {
+                  return 'CPU: ' + context.parsed.y.toFixed(1) + '%';
+                },
+                title: function(context) {
+                  if (context && context[0]) {
+                    const date = new Date(context[0].parsed.x);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + 
+                           date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                  }
+                  return '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                displayFormats: {
+                  minute: 'HH:mm',
+                  hour: 'MMM dd HH:mm',
+                  day: 'MMM dd',
+                  week: 'MMM dd'
+                },
+                tooltipFormat: 'MMM dd, yyyy HH:mm:ss'
+              },
+              grid: {
+                color: 'rgba(100, 116, 139, 0.3)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94a3b8',
+                maxRotation: 45,
+                minRotation: 0
+              }
+            },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              grid: {
+                color: 'rgba(100, 116, 139, 0.3)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94a3b8',
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          spanGaps: false
+        },
+        plugins: noDataYet ? [{
+          id: 'noDataMessage',
+          afterDraw: function(chart) {
+            const { ctx, width, height } = chart;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '16px system-ui, -apple-system, sans-serif';
+            ctx.fillText('Waiting for CPU data...', width / 2, height / 2);
+            ctx.restore();
+          }
+        }] : []
       });
     }
 
     function loadChartData() {
+      const deviceSelector = document.getElementById('device-selector');
+      const availableDevices = deviceSelector.options.length - 1; // Subtract 1 for "Choose a device..." option
+
+      if (availableDevices === 0) {
+        const container = document.getElementById('charts-container');
+        container.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="max-w-md mx-auto">
+              <div class="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <i class="fas fa-server text-gray-400 text-2xl"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-3">No Devices Configured</h3>
+              <p class="text-gray-400 mb-6 leading-relaxed">
+                No SNMP devices have been configured yet. Please add devices from the Device Management page to start monitoring bandwidth usage.
+              </p>
+              <a href="/devices" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5">
+                <i class="fas fa-plus"></i>
+                <span>Configure Devices</span>
+              </a>
+            </div>
+          </div>
+        `;
+        showToast('No devices available. Please configure devices first.', 'info');
+        return;
+      }
+
       if (!currentDevice) {
         showToast('Please select a device', 'warning');
         return;
@@ -775,6 +1053,28 @@
         let chartCreationAttempts = 0;
         let allDataLoaded = false;
 
+        // Load CPU data first
+        const cpuPromise = fetch(`/api/data?device=${encodeURIComponent(currentDevice)}&metric=cpu&timeRange=${encodeURIComponent(timeRangeParam)}`)
+          .then(response => response.json())
+          .catch(err => {
+            console.error('Error loading CPU data:', err);
+            return [];
+          });
+        
+        cpuPromise.then(cpuData => {
+          // Check if there's CPU data
+          const hasCpuData = cpuData.length > 0 && cpuData.some(d => d.value >= 0);
+          
+          if (hasCpuData) {
+            createCpuChart(currentDevice, cpuData);
+            chartsCreated++;
+          } else {
+            // Create CPU chart with empty data
+            createCpuChart(currentDevice, [], true);
+            chartsCreated++;
+          }
+        });
+
         selectedInterfaces.forEach(iface => {
           // Support both old format (string) and new format ({index, name})
           const ifaceName = typeof iface === 'string' ? iface : iface.name;
@@ -797,18 +1097,22 @@
           
           // Wait for both RX and TX data
           Promise.all([rxPromise, txPromise]).then(([rxData, txData]) => {
-            // Only create chart if there's actual data (not all zeros or empty)
+            // Check if there's actual data
             const hasRxData = rxData.length > 0 && rxData.some(d => d.value > 0.0001);
             const hasTxData = txData.length > 0 && txData.some(d => d.value > 0.0001);
             
+            // Create chart even if no data yet - show waiting message
+            chartCreationAttempts++;
+            
             if (hasRxData || hasTxData) {
-              chartCreationAttempts++;
               createInterfaceChart(ifaceName, rxData, txData);
               chartsCreated++;
             } else {
-              chartCreationAttempts++;
-              // Skipping chart - no traffic data for this interface
+              // Create chart with empty data and waiting message
+              createInterfaceChart(ifaceName, [], [], true); // true = no data yet
+              chartsCreated++;
             }
+            
             completed++;
             
             // Check if all interfaces have completed loading
@@ -831,6 +1135,24 @@
       } else if (interfaceSelector !== 'all') {
         // Load specific interface
         container.innerHTML = '';
+        
+        // Load CPU data first
+        const cpuPromise = fetch(`/api/data?device=${encodeURIComponent(currentDevice)}&metric=cpu&timeRange=${encodeURIComponent(timeRangeParam)}`)
+          .then(response => response.json())
+          .catch(err => {
+            console.error('Error loading CPU data:', err);
+            return [];
+          });
+        
+        cpuPromise.then(cpuData => {
+          const hasCpuData = cpuData.length > 0 && cpuData.some(d => d.value >= 0);
+          
+          if (hasCpuData) {
+            createCpuChart(currentDevice, cpuData);
+          } else {
+            createCpuChart(currentDevice, [], true);
+          }
+        });
         
         // Load RX data
         const rxPromise = fetch(`/api/data?device=${encodeURIComponent(currentDevice)}&interface=${encodeURIComponent(interfaceSelector)}&direction=rx&timeRange=${encodeURIComponent(timeRangeParam)}`)
@@ -856,11 +1178,12 @@
           if (hasRxData || hasTxData) {
             createInterfaceChart(interfaceSelector, rxData, txData);
           } else {
-            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i><p>No traffic data found for this interface in the selected time range</p></div>';
+            // Still show CPU chart even if no interface data
+            // The CPU chart is already created above
           }
         }).catch(err => {
           console.error('Error loading data:', err);
-          container.innerHTML = '<div class="col-span-full text-center py-12 text-red-400"><p>Error loading data</p></div>';
+          // CPU chart is still shown even if interface data fails
         });
       } else {
         showToast('Please select interfaces from Device Management first', 'warning');
@@ -1076,7 +1399,7 @@
           yPosition += chartHeight + 8;
           chartCount++;
 
-          // Maximum 4 charts per report to keep it readable
+          // Maximum 4 interfaces per report (8 charts total) to keep it readable
           if (chartCount >= 8) break;
         }
 

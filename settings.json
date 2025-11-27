@@ -1,5 +1,5 @@
 {
-  "pollingInterval": 60000,
+  "pollingInterval": 300000,
   "pingInterval": 60000,
   "dataRetention": 365,
   "influxdb": {

@@ -791,10 +791,54 @@
 
     // Handle preset buttons
     presetButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', async function() {
         const value = this.getAttribute('data-value');
         pollingIntervalInput.value = value;
         updateIntervalDisplay(value);
+        
+        // Automatically save when preset is clicked
+        const seconds = parseInt(value);
+        if (!seconds || seconds < 10) {
+          showToast('Error: Interval must be at least 10 seconds', 'error');
+          return;
+        }
+
+        // Disable all preset buttons during save
+        const originalTexts = {};
+        presetButtons.forEach(b => {
+          originalTexts[b] = b.innerHTML;
+          b.disabled = true;
+          b.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Saving...';
+        });
+
+        try {
+          const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pollingIntervalSeconds: seconds })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update settings');
+          }
+
+          const data = await response.json();
+          showToast(`✓ Polling interval updated to ${seconds} seconds (${(seconds/60).toFixed(1)} minutes)`, 'success');
+          
+          // Refresh settings after 2 seconds
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
+        } catch (err) {
+          console.error('Error:', err);
+          showToast('✗ Failed to update polling interval', 'error');
+        } finally {
+          // Re-enable preset buttons
+          presetButtons.forEach(b => {
+            b.disabled = false;
+            b.innerHTML = originalTexts[b];
+          });
+        }
       });
     });
 
@@ -837,7 +881,7 @@
         }
 
         const data = await response.json();
-        showStatus(`✓ Polling interval updated to ${seconds} seconds (${(seconds/60).toFixed(1)} minutes)`, 'success');
+        showToast(`✓ Polling interval updated to ${seconds} seconds (${(seconds/60).toFixed(1)} minutes)`, 'success');
         
         // Refresh settings after 2 seconds
         setTimeout(() => {
@@ -845,7 +889,7 @@
         }, 2000);
       } catch (err) {
         console.error('Error:', err);
-        showStatus('✗ Failed to update polling interval', 'error');
+        showToast('✗ Failed to update polling interval', 'error');
       } finally {
         saveIntervalBtn.disabled = false;
         saveIntervalBtn.classList.remove('opacity-50');

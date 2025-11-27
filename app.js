@@ -16,7 +16,8 @@ const VENDOR_OIDS = {
     ifDescr: '1.3.6.1.2.1.2.2.1.2',      // Interface description
     ifInOctets: '1.3.6.1.2.1.2.2.1.10',  // Inbound octets
     ifOutOctets: '1.3.6.1.2.1.2.2.1.16', // Outbound octets
-    sysDescr: '1.3.6.1.2.1.1.1.0'         // System description
+    sysDescr: '1.3.6.1.2.1.1.1.0',        // System description
+    cpuUsage: '1.3.6.1.4.1.2021.11.9.0'   // UCD-SNMP-MIB CPU usage (percentage)
   },
   // Cisco specific OIDs
   cisco: {
@@ -26,7 +27,10 @@ const VENDOR_OIDS = {
     sysDescr: '1.3.6.1.2.1.1.1.0',
     // Cisco specific counters (64-bit)
     ifHCInOctets: '1.3.6.1.2.1.31.1.1.1.6',  // High capacity in octets
-    ifHCOutOctets: '1.3.6.1.2.1.31.1.1.1.10' // High capacity out octets
+    ifHCOutOctets: '1.3.6.1.2.1.31.1.1.1.10', // High capacity out octets
+    // Cisco CPU usage
+    cpmCPUTotal5sec: '1.3.6.1.4.1.9.9.109.1.1.1.1.5.1', // Cisco CPU total 5sec
+    cpmCPUTotal1min: '1.3.6.1.4.1.9.9.109.1.1.1.1.6.1'   // Cisco CPU total 1min
   },
   // Huawei specific OIDs
   huawei: {
@@ -36,7 +40,9 @@ const VENDOR_OIDS = {
     sysDescr: '1.3.6.1.2.1.1.1.0',
     // Huawei specific counters
     hwIfInOctets: '1.3.6.1.4.1.2011.5.25.31.1.1.3.1.6',  // Huawei interface in octets
-    hwIfOutOctets: '1.3.6.1.4.1.2011.5.25.31.1.1.3.1.10' // Huawei interface out octets
+    hwIfOutOctets: '1.3.6.1.4.1.2011.5.25.31.1.1.3.1.10', // Huawei interface out octets
+    // Huawei CPU usage
+    hwEntityCpuUsage: '1.3.6.1.4.1.2011.5.25.31.1.1.1.1.6' // Huawei entity CPU usage
   },
   // Mikrotik specific OIDs
   mikrotik: {
@@ -46,7 +52,9 @@ const VENDOR_OIDS = {
     sysDescr: '1.3.6.1.2.1.1.1.0',
     // Mikrotik specific counters
     mtxrIfInOctets: '1.3.6.1.4.1.14988.1.1.14.1.1.6',  // Mikrotik interface in octets
-    mtxrIfOutOctets: '1.3.6.1.4.1.14988.1.1.14.1.1.10' // Mikrotik interface out octets
+    mtxrIfOutOctets: '1.3.6.1.4.1.14988.1.1.14.1.1.10', // Mikrotik interface out octets
+    // Mikrotik CPU usage
+    mtxrCpuLoad: '1.3.6.1.4.1.14988.1.1.3.11.0' // Mikrotik CPU load
   },
   // Juniper specific OIDs
   juniper: {
@@ -56,7 +64,9 @@ const VENDOR_OIDS = {
     sysDescr: '1.3.6.1.2.1.1.1.0',
     // Juniper specific counters
     jnxIfInOctets: '1.3.6.1.4.1.2636.3.3.1.1.7',  // Juniper interface in octets
-    jnxIfOutOctets: '1.3.6.1.4.1.2636.3.3.1.1.11' // Juniper interface out octets
+    jnxIfOutOctets: '1.3.6.1.4.1.2636.3.3.1.1.11', // Juniper interface out octets
+    // Juniper CPU usage
+    jnxOperatingCPU: '1.3.6.1.4.1.2636.4.16.1.4.1.1.1' // Juniper operating CPU
   },
   // HP/Aruba specific OIDs
   hp: {
@@ -66,7 +76,9 @@ const VENDOR_OIDS = {
     sysDescr: '1.3.6.1.2.1.1.1.0',
     // HP specific counters
     hpIfInOctets: '1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.6',  // HP interface in octets
-    hpIfOutOctets: '1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.10' // HP interface out octets
+    hpIfOutOctets: '1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.10', // HP interface out octets
+    // HP CPU usage
+    hpCpuUtilization: '1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.4' // HP CPU utilization
   }
 };
 
@@ -89,8 +101,29 @@ function getVendorOID(vendor, metric) {
   return vendorConfig[metric] || VENDOR_OIDS.standard[metric];
 }
 
+// Function to get CPU OID for vendor (handles different metric names)
+function getCpuOID(vendor) {
+  const vendorConfig = VENDOR_OIDS[vendor] || VENDOR_OIDS.standard;
+
+  // Try vendor-specific CPU metrics first
+  switch (vendor) {
+    case 'cisco':
+      return vendorConfig['cpmCPUTotal5sec'] || vendorConfig['cpmCPUTotal1min'];
+    case 'huawei':
+      return vendorConfig['hwEntityCpuUsage'];
+    case 'mikrotik':
+      return vendorConfig['mtxrCpuLoad'];
+    case 'juniper':
+      return vendorConfig['jnxOperatingCPU'];
+    case 'hp':
+      return vendorConfig['hpCpuUtilization'];
+    default:
+      return vendorConfig['cpuUsage']; // Standard UCD-SNMP
+  }
+}
+
 // Function to process RX data
-function processRxData(deviceId, device, iface, rxValue) {
+function processRxData(deviceId, device, iface, rxValue, timestamp = new Date()) {
   try {
     const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
     const rxPoint = new Point('snmp_metric')
@@ -99,7 +132,7 @@ function processRxData(deviceId, device, iface, rxValue) {
       .tag('interface', iface.name)
       .tag('direction', 'rx')
       .tag('vendor', device.vendor || 'standard')
-      .timestamp(new Date())
+      .timestamp(timestamp)
       .floatField('value', rxValue);
     writeApi.writePoint(rxPoint);
     writeApi.close().then(() => {
@@ -113,7 +146,7 @@ function processRxData(deviceId, device, iface, rxValue) {
 }
 
 // Function to process TX data
-function processTxData(deviceId, device, iface, txValue) {
+function processTxData(deviceId, device, iface, txValue, timestamp = new Date()) {
   try {
     const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
     const txPoint = new Point('snmp_metric')
@@ -122,7 +155,7 @@ function processTxData(deviceId, device, iface, txValue) {
       .tag('interface', iface.name)
       .tag('direction', 'tx')
       .tag('vendor', device.vendor || 'standard')
-      .timestamp(new Date())
+      .timestamp(timestamp)
       .floatField('value', txValue);
     writeApi.writePoint(txPoint);
     writeApi.close().then(() => {
@@ -135,10 +168,73 @@ function processTxData(deviceId, device, iface, txValue) {
   }
 }
 
+// Function to process CPU data
+function processCpuData(deviceId, device, cpuValue, timestamp = new Date()) {
+  try {
+    const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
+    const cpuPoint = new Point('snmp_metric')
+      .tag('device', deviceId)
+      .tag('device_name', device.name)
+      .tag('metric', 'cpu')
+      .tag('vendor', device.vendor || 'standard')
+      .timestamp(timestamp)
+      .floatField('value', cpuValue);
+    writeApi.writePoint(cpuPoint);
+    writeApi.close().then(() => {
+      console.log(`[${deviceId}] CPU data written: ${cpuValue}%`);
+    }).catch(err => {
+      console.error('InfluxDB CPU write error:', err);
+    });
+  } catch (err) {
+    console.error('Error creating CPU write API:', err);
+  }
+}
+
 // Load SNMP devices config
 const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
 const snmpSessions = {}; // Map of device sessions
 const snmpDevices = {}; // Map of device config
+
+// Migration function to convert old string-based interfaces to new object format
+function migrateInterfaceData() {
+  let migrated = false;
+  config.snmpDevices.forEach(device => {
+    if (device.selectedInterfaces && Array.isArray(device.selectedInterfaces)) {
+      const migratedInterfaces = device.selectedInterfaces.map(iface => {
+        if (typeof iface === 'string') {
+          // Old format: interface name as string
+          console.log(`[MIGRATION] Converting old interface format for ${device.id}: ${iface}`);
+          // We can't determine the index from just the name, so we'll skip these
+          // They will need to be re-selected by the user
+          migrated = true;
+          return null;
+        } else if (typeof iface === 'object' && iface.index && iface.name) {
+          // Already in new format
+          return iface;
+        } else {
+          // Invalid format, skip
+          console.warn(`[MIGRATION] Invalid interface format for ${device.id}, skipping:`, iface);
+          migrated = true;
+          return null;
+        }
+      }).filter(iface => iface !== null);
+      
+      if (migratedInterfaces.length !== device.selectedInterfaces.length) {
+        console.log(`[MIGRATION] Migrated ${device.id}: ${device.selectedInterfaces.length} -> ${migratedInterfaces.length} interfaces`);
+        device.selectedInterfaces = migratedInterfaces;
+        migrated = true;
+      }
+    }
+  });
+  
+  if (migrated) {
+    saveConfig();
+    console.log('[MIGRATION] Interface data migration completed and saved');
+  }
+}
+
+// Run migration on startup
+migrateInterfaceData();
 
 // Initialize SNMP sessions for enabled devices
 config.snmpDevices.forEach(device => {
@@ -149,8 +245,8 @@ config.snmpDevices.forEach(device => {
     }
     snmpDevices[device.id] = device;
     snmpSessions[device.id] = snmp.createSession(device.host, device.community, {
-      timeout: 1000,
-      retries: 0
+      timeout: 5000, // Increased from 1000ms to 5000ms for better reliability
+      retries: 1    // Allow 1 retry
     });
     console.log(`SNMP Session initialized for device: ${device.name} (${device.host}) - Vendor: ${device.vendor}`);
   }
@@ -230,20 +326,6 @@ if (fs.existsSync(pingTargetsFile)) {
   fs.writeFileSync(pingTargetsFile, JSON.stringify(pingTargets, null, 2));
 }
 
-// Ping history storage (1 month retention)
-const pingHistoryFile = './ping-history.json';
-let pingHistory = {};
-if (fs.existsSync(pingHistoryFile)) {
-  try {
-    pingHistory = JSON.parse(fs.readFileSync(pingHistoryFile, 'utf8'));
-  } catch (err) {
-    console.error('Error loading ping history, starting fresh:', err);
-    pingHistory = {};
-  }
-} else {
-  fs.writeFileSync(pingHistoryFile, JSON.stringify(pingHistory, null, 2));
-}
-
 // Helper function to save config
 function saveConfig() {
   fs.writeFileSync('./config.json', JSON.stringify(config, null, 2));
@@ -267,60 +349,65 @@ function savePingHistory() {
   fs.writeFileSync(pingHistoryFile, JSON.stringify(pingHistory, null, 2));
 }
 
-// Helper function to add ping result to history
-function addPingToHistory(targetId, result) {
-  if (!pingHistory[targetId]) {
-    pingHistory[targetId] = {
-      targetId: targetId,
-      data: []
-    };
-  }
-  
-  pingHistory[targetId].data.push({
-    timestamp: new Date().toISOString(),
-    alive: result.alive,
-    time: result.time,
-    packetLoss: result.packetLoss
-  });
-  
-  // Save every 10 entries to reduce disk I/O
-  if (pingHistory[targetId].data.length % 10 === 0) {
-    savePingHistory();
+// Helper function to add ping result to database
+function addPingToDatabase(targetId, result) {
+  try {
+    const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
+    const pingPoint = new Point('ping_metric')
+      .tag('target_id', targetId.toString())
+      .tag('target_name', pingTargets.find(t => t.id === targetId)?.name || 'unknown')
+      .tag('metric', 'ping')
+      .timestamp(new Date())
+      .floatField('latency', parseFloat(result.time) || 0)
+      .floatField('packet_loss', parseFloat(result.packetLoss) || 0)
+      .intField('alive', result.alive ? 1 : 0);
+
+    writeApi.writePoint(pingPoint);
+    writeApi.close().then(() => {
+      console.log(`[PING] Data written for target ${targetId}: ${result.time}ms, ${result.packetLoss}% loss, alive: ${result.alive}`);
+    }).catch(err => {
+      console.error('InfluxDB ping write error:', err);
+    });
+  } catch (err) {
+    console.error('Error creating ping write API:', err);
   }
 }
 
-// Helper function to cleanup old ping history (older than 1 month)
-function cleanupOldPingHistory() {
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  
-  let cleaned = 0;
-  Object.keys(pingHistory).forEach(targetId => {
-    if (pingHistory[targetId] && pingHistory[targetId].data) {
-      const originalLength = pingHistory[targetId].data.length;
-      pingHistory[targetId].data = pingHistory[targetId].data.filter(entry => {
-        return new Date(entry.timestamp) > oneMonthAgo;
-      });
-      cleaned += originalLength - pingHistory[targetId].data.length;
-      
-      // Remove target history if no data left
-      if (pingHistory[targetId].data.length === 0) {
-        delete pingHistory[targetId];
-      }
-    }
-  });
-  
-  if (cleaned > 0) {
-    savePingHistory();
-    console.log(`Cleaned up ${cleaned} old ping history entries`);
+// Helper function to cleanup old ping data from database (older than 1 month)
+async function cleanupOldPingData() {
+  try {
+    console.log('[PING CLEANUP] Ping data cleanup is currently disabled due to InfluxDB API compatibility issues');
+    // TODO: Re-enable when InfluxDB client API is updated
+    /*
+    console.log('[PING CLEANUP] Starting database cleanup for ping data older than 1 month');
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    // Use InfluxDB query API to delete old ping data
+    const cutoffIso = oneMonthAgo.toISOString();
+    const deleteQuery = `
+      from(bucket: "${settings.influxdb.bucket}")
+        |> range(start: 1970-01-01T00:00:00Z, stop: ${cutoffIso})
+        |> filter(fn: (r) => r._measurement == "ping_metric")
+        |> delete()
+    `;
+
+    const queryApi = client.getQueryApi(settings.influxdb.org);
+    await queryApi.query(deleteQuery);
+
+    console.log('[PING CLEANUP] Database cleanup completed for ping data');
+    */
+  } catch (err) {
+    console.error('[PING CLEANUP] Error cleaning up ping data:', err);
   }
 }
 
-// Cleanup old ping history on startup
-cleanupOldPingHistory();
+// Cleanup old ping data on startup
+cleanupOldPingData();
 
 // Schedule cleanup every 24 hours
-setInterval(cleanupOldPingHistory, 24 * 60 * 60 * 1000);
+setInterval(cleanupOldPingData, 24 * 60 * 60 * 1000);
 
 // Route for dashboard page
 app.get('/', (req, res) => {
@@ -495,9 +582,9 @@ app.post('/api/ping-test', async (req, res) => {
       extra: ['-c', '3'] // Send 3 packets
     });
     
-    // Save to history if targetId provided
+    // Save to database if targetId provided
     if (targetId) {
-      addPingToHistory(targetId, result);
+      addPingToDatabase(targetId, result);
     }
     
     res.json({
@@ -515,30 +602,75 @@ app.post('/api/ping-test', async (req, res) => {
 });
 
 // API to get ping history for a target
-app.get('/api/ping-history/:targetId', (req, res) => {
+app.get('/api/ping-history/:targetId', async (req, res) => {
   try {
-    const targetId = parseInt(req.params.targetId);
-    const history = pingHistory[targetId] || { targetId, data: [] };
-    
-    // Optional: filter by time range
-    const { startDate, endDate } = req.query;
-    let filteredData = history.data;
-    
+    const targetId = req.params.targetId;
+    const { startDate, endDate, timeRange } = req.query;
+
+    // Build InfluxDB query for ping data
+    let rangeStart = timeRange || '-30d'; // Default to last 30 days
+    let rangeStop = '';
+
     if (startDate || endDate) {
-      filteredData = history.data.filter(entry => {
-        const timestamp = new Date(entry.timestamp);
-        if (startDate && timestamp < new Date(startDate)) return false;
-        if (endDate && timestamp > new Date(endDate)) return false;
-        return true;
-      });
+      if (startDate && endDate) {
+        rangeStart = `time(v: "${new Date(startDate).toISOString()}")`;
+        rangeStop = `, stop: time(v: "${new Date(endDate).toISOString()}")`;
+      } else if (startDate) {
+        rangeStart = `time(v: "${new Date(startDate).toISOString()}")`;
+      } else if (endDate) {
+        rangeStart = '-30d';
+        rangeStop = `, stop: time(v: "${new Date(endDate).toISOString()}")`;
+      }
     }
-    
-    res.json({
-      success: true,
-      targetId,
-      count: filteredData.length,
-      data: filteredData
+
+    const query = `
+      from(bucket: "${settings.influxdb.bucket}")
+      |> range(start: ${rangeStart}${rangeStop})
+      |> filter(fn: (r) => r._measurement == "ping_metric")
+      |> filter(fn: (r) => r._field != "")
+      |> filter(fn: (r) => r.target_id == "${targetId}")
+      |> filter(fn: (r) => r.metric == "ping")
+      |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+      |> sort(columns: ["_time"], desc: false)
+    `;
+
+    console.log('[PING HISTORY] Query:', query.substring(0, 200));
+
+    const data = [];
+    let hasError = false;
+    let responded = false;
+
+    queryApi.queryRows(query, {
+      next(row, tableMeta) {
+        const o = tableMeta.toObject(row);
+        data.push({
+          timestamp: o._time,
+          alive: o.alive === 1,
+          time: parseFloat(o.latency) || 0,
+          packetLoss: parseFloat(o.packet_loss) || 0
+        });
+      },
+      error(error) {
+        console.error('InfluxDB ping history query error:', error);
+        hasError = true;
+        if (!responded) {
+          responded = true;
+          res.status(500).json({ error: 'Database query error' });
+        }
+      },
+      complete() {
+        if (!hasError && !responded) {
+          responded = true;
+          res.json({
+            success: true,
+            targetId: parseInt(targetId),
+            count: data.length,
+            data: data
+          });
+        }
+      }
     });
+
   } catch (err) {
     console.error('Error retrieving ping history:', err);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -578,12 +710,21 @@ app.get('/monitoring', async (req, res) => {
   try {
     console.log('Route /monitoring called');
     const deviceId = req.query.device || Object.keys(snmpDevices)[0] || null;
-    
-    if (!deviceId || !snmpDevices[deviceId]) {
-      return res.status(400).send('Device not found');
+
+    // If no devices are available, render the page with empty devices
+    if (Object.keys(snmpDevices).length === 0) {
+      return res.render('monitoring', {
+        devices: {},
+        selectedDevice: null
+      });
     }
 
-    res.render('monitoring', { 
+    // If a specific device is requested but doesn't exist, redirect to monitoring without device
+    if (deviceId && !snmpDevices[deviceId]) {
+      return res.redirect('/monitoring');
+    }
+
+    res.render('monitoring', {
       devices: snmpDevices,
       selectedDevice: deviceId
     });
@@ -795,8 +936,8 @@ app.post('/api/discover-interfaces', (req, res) => {
     }
 
     const tempSession = snmp.createSession(host, community, {
-      timeout: 3000,
-      retries: 0
+      timeout: 5000,
+      retries: 1
     });
 
     let vendor = 'standard';
@@ -890,8 +1031,8 @@ app.post('/api/devices', (req, res) => {
     
     // Create SNMP session for new device
     snmpSessions[id] = snmp.createSession(host, community, {
-      timeout: 1000,
-      retries: 0
+      timeout: 5000,
+      retries: 1
     });
     
     console.log(`Device added: ${name} (${host}) - Vendor: ${newDevice.vendor}`);
@@ -917,16 +1058,29 @@ app.delete('/api/devices/:deviceId', async (req, res) => {
       console.log(`[DELETE DEVICE] Starting database cleanup for device: ${deviceId} (${device.name})`);
 
       // Delete all SNMP metric data for this device from InfluxDB
-      const deleteApi = client.getDeleteApi();
+      // Using direct HTTP call since deleteAPI is not available in this client version
+      const deleteUrl = `${settings.influxdb.url}/api/v2/delete`;
+      const deleteParams = new URLSearchParams({
+        org: settings.influxdb.org,
+        bucket: settings.influxdb.bucket
+      });
 
-      // Delete data with device tag matching this deviceId
-      await deleteApi.delete(
-        new Date(0), // Start from epoch (beginning of time)
-        new Date(), // End at current time
-        `_measurement="snmp_metric" AND device="${deviceId}"`,
-        settings.influxdb.bucket,
-        settings.influxdb.org
-      );
+      const response = await fetch(`${deleteUrl}?${deleteParams}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${settings.influxdb.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          start: new Date(0).toISOString(),
+          stop: new Date().toISOString(),
+          predicate: `_measurement="snmp_metric" AND device="${deviceId}"`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Delete request failed: ${response.status} ${response.statusText}`);
+      }
 
       console.log(`[DELETE DEVICE] Database cleanup completed for device: ${deviceId}`);
 
@@ -997,8 +1151,8 @@ app.put('/api/devices/:deviceId', (req, res) => {
     
     // Create new SNMP session with updated credentials
     snmpSessions[deviceId] = snmp.createSession(host, community, {
-      timeout: 1000,
-      retries: 0
+      timeout: 5000,
+      retries: 1
     });
     
     res.json(snmpDevices[deviceId]);
@@ -1020,13 +1174,14 @@ app.get('/api/devices/:deviceId/interfaces', (req, res) => {
     // Handle both old format (array of strings) and new format (array of {index, name})
     const interfaces = (device.selectedInterfaces || []).map((iface, idx) => {
       if (typeof iface === 'string') {
-        // Old format: just interface name, use position as index (fallback)
-        return { index: idx + 1, name: iface };
+        // Old format: just interface name, skip these as they don't have valid indices
+        console.warn(`[${deviceId}] Skipping interface ${iface} - stored as string without index`);
+        return null;
       } else {
         // New format: {index, name}
         return { index: iface.index, name: iface.name };
       }
-    });
+    }).filter(iface => iface !== null); // Remove null entries
     
     res.json(interfaces);
   } catch (err) {
@@ -1070,6 +1225,7 @@ app.get('/api/data', async (req, res) => {
     const deviceId = req.query.device || Object.keys(snmpDevices)[0] || null;
     const interface = req.query.interface || 'all';
     const direction = req.query.direction || 'all'; // 'rx', 'tx', or 'all'
+    const metric = req.query.metric || 'bandwidth'; // 'bandwidth' or 'cpu'
     const timeRange = req.query.timeRange || '-24h';
     
     if (!deviceId || !snmpDevices[deviceId]) {
@@ -1137,36 +1293,68 @@ app.get('/api/data', async (req, res) => {
       |> filter(fn: (r) => r._field == "value")
       |> filter(fn: (r) => r.device == "${deviceId}")
     `;
-    if (interface !== 'all') {
-      query += ` |> filter(fn: (r) => r.interface == "${interface}")`;
+    
+    if (metric === 'cpu') {
+      query += ` |> filter(fn: (r) => r.metric == "cpu")`;
+      query += `
+        |> filter(fn: (r) => r._value >= 0 and r._value <= 100)
+      `;
+    } else {
+      // Bandwidth data
+      if (interface !== 'all') {
+        query += ` |> filter(fn: (r) => r.interface == "${interface}")`;
+      }
+      if (direction !== 'all') {
+        query += ` |> filter(fn: (r) => r.direction == "${direction}")`;
+      }
+      query += `
+        |> derivative(unit: 1s, nonNegative: true)
+        |> map(fn: (r) => ({ r with _value: r._value * 8.0 / 1000000.0 }))
+        |> filter(fn: (r) => r._value > 0)
+      `;
     }
-    if (direction !== 'all') {
-      query += ` |> filter(fn: (r) => r.direction == "${direction}")`;
-    }
-    query += `
-      |> derivative(unit: 1s, nonNegative: true)
-      |> map(fn: (r) => ({ r with _value: r._value * 8.0 / 1000000.0 }))
-      |> filter(fn: (r) => r._value > 0)
-    `;
     
     console.log('[API/DATA] Query:', query.substring(0, 300));
     const data = [];
     let hasError = false;
     let responded = false;
+    
+    // Add timeout to prevent hanging queries
+    const queryTimeout = setTimeout(() => {
+      if (!responded) {
+        console.error('[API/DATA] Query timeout after 30 seconds');
+        responded = true;
+        res.status(504).json({ error: 'Query timeout' });
+      }
+    }, 30000);
+    
     queryApi.queryRows(query, {
       next(row, tableMeta) {
         const o = tableMeta.toObject(row);
         data.push({ time: o._time, value: o._value });
+        
+        // Limit data points to prevent memory bloat
+        if (data.length > 10000) {
+          console.warn('[API/DATA] Query result too large, truncating');
+          if (!responded) {
+            clearTimeout(queryTimeout);
+            responded = true;
+            res.json(data.slice(0, 10000));
+          }
+          return;
+        }
       },
       error(error) {
         console.error('InfluxDB query error:', error);
+        clearTimeout(queryTimeout);
         hasError = true;
         if (!responded) {
           responded = true;
-          res.json([]);
+          res.status(500).json({ error: 'Database query error' });
         }
       },
       complete() {
+        clearTimeout(queryTimeout);
         if (!hasError && !responded) {
           responded = true;
           res.json(data);
@@ -1184,7 +1372,8 @@ app.get('/api/data', async (req, res) => {
 function pollSNMP() {
   console.log('[POLLING] Function called');
   try {
-    console.log(`[POLLING] Starting poll at ${new Date().toISOString()}`);
+    const pollTimestamp = new Date(); // Capture timestamp at start of polling cycle
+    console.log(`[POLLING] Starting poll at ${pollTimestamp.toISOString()}`);
     
     Object.keys(snmpDevices).forEach(deviceId => {
     const device = snmpDevices[deviceId];
@@ -1198,10 +1387,19 @@ function pollSNMP() {
     console.log(`[${deviceId}] Retrieved ${device.selectedInterfaces.length} interfaces from config`);
     
     // Use selected interfaces directly
-    const ifacesToPoll = device.selectedInterfaces.map(iface => ({
-      index: typeof iface === 'string' ? iface : iface.index,
-      name: typeof iface === 'string' ? iface : iface.name
-    }));
+    const ifacesToPoll = device.selectedInterfaces.map(iface => {
+      if (typeof iface === 'string') {
+        // Old format: interface name as string, we need to skip these as they don't have indices
+        console.warn(`[${deviceId}] Skipping interface ${iface} - stored as string without index`);
+        return null;
+      } else {
+        // New format: {index, name}
+        return {
+          index: iface.index,
+          name: iface.name
+        };
+      }
+    }).filter(iface => iface !== null); // Remove null entries
     
     ifacesToPoll.forEach(iface => {
       const vendor = device.vendor || 'standard';
@@ -1222,14 +1420,14 @@ function pollSNMP() {
             snmpSessions[deviceId].get([fallbackRxOid], function(fallbackError, fallbackVarbinds) {
               if (!fallbackError && fallbackVarbinds && !snmp.isVarbindError(fallbackVarbinds[0])) {
                 console.log(`[${deviceId}] RX fallback successful for ${iface.name}`);
-                processRxData(deviceId, device, iface, fallbackVarbinds[0].value);
+                processRxData(deviceId, device, iface, fallbackVarbinds[0].value, pollTimestamp);
               }
             });
           }
         } else if (snmp.isVarbindError(rxVarbinds[0])) {
           console.error(`[${deviceId}] SNMP RX varbind error for ${iface.name}:`, snmp.varbindError(rxVarbinds[0]));
         } else {
-          processRxData(deviceId, device, iface, rxVarbinds[0].value);
+          processRxData(deviceId, device, iface, rxVarbinds[0].value, pollTimestamp);
         }
       });
       
@@ -1243,17 +1441,81 @@ function pollSNMP() {
             snmpSessions[deviceId].get([fallbackTxOid], function(fallbackError, fallbackVarbinds) {
               if (!fallbackError && fallbackVarbinds && !snmp.isVarbindError(fallbackVarbinds[0])) {
                 console.log(`[${deviceId}] TX fallback successful for ${iface.name}`);
-                processTxData(deviceId, device, iface, fallbackVarbinds[0].value);
+                processTxData(deviceId, device, iface, fallbackVarbinds[0].value, pollTimestamp);
               }
             });
           }
         } else if (snmp.isVarbindError(txVarbinds[0])) {
           console.error(`[${deviceId}] SNMP TX varbind error for ${iface.name}:`, snmp.varbindError(txVarbinds[0]));
         } else {
-          processTxData(deviceId, device, iface, txVarbinds[0].value);
+          processTxData(deviceId, device, iface, txVarbinds[0].value, pollTimestamp);
         }
       });
     });
+    
+    // Poll CPU usage for this device
+    const vendor = device.vendor || 'standard';
+    const cpuOid = getCpuOID(vendor);
+    if (cpuOid) {
+      console.log(`[${deviceId}] Polling CPU using ${vendor} OID: ${cpuOid}`);
+      
+      snmpSessions[deviceId].get([cpuOid], function(cpuError, cpuVarbinds) {
+        if (cpuError) {
+          // Log timeout errors as warnings instead of errors to reduce noise
+          if (cpuError.message && cpuError.message.includes('Request timed out')) {
+            console.warn(`[${deviceId}] SNMP CPU timeout - skipping CPU polling for this cycle`);
+          } else {
+            console.error(`[${deviceId}] SNMP CPU error:`, cpuError);
+          }
+          // Try fallback to standard UCD-SNMP-MIB if vendor-specific OID fails
+          if (vendor !== 'standard') {
+            const fallbackCpuOid = '1.3.6.1.4.1.2021.11.9.0'; // UCD-SNMP-MIB CPU usage
+            snmpSessions[deviceId].get([fallbackCpuOid], function(fallbackError, fallbackVarbinds) {
+              if (!fallbackError && fallbackVarbinds && !snmp.isVarbindError(fallbackVarbinds[0])) {
+                console.log(`[${deviceId}] CPU fallback successful`);
+                let cpuValue = parseFloat(fallbackVarbinds[0].value);
+                
+                // Mikrotik CPU values are often multiplied by 100, so divide by 100 for percentage
+                if (vendor === 'mikrotik' && cpuValue > 100) {
+                  cpuValue = cpuValue / 100;
+                }
+                
+                if (!isNaN(cpuValue) && cpuValue >= 0 && cpuValue <= 100) {
+                  processCpuData(deviceId, device, cpuValue, pollTimestamp);
+                }
+              } else {
+                // Fallback also failed, skip CPU for this cycle
+                if (fallbackError && fallbackError.message && fallbackError.message.includes('Request timed out')) {
+                  console.warn(`[${deviceId}] SNMP CPU fallback timeout - CPU data unavailable`);
+                } else {
+                  console.log(`[${deviceId}] CPU fallback failed or not supported`);
+                }
+              }
+            });
+          } else {
+            // No fallback available, skip CPU for this cycle
+            console.log(`[${deviceId}] CPU polling failed - data unavailable for this cycle`);
+          }
+        } else if (snmp.isVarbindError(cpuVarbinds[0])) {
+          console.error(`[${deviceId}] SNMP CPU varbind error:`, snmp.varbindError(cpuVarbinds[0]));
+        } else {
+          let cpuValue = parseFloat(cpuVarbinds[0].value);
+          
+          // Mikrotik CPU values are often multiplied by 100, so divide by 100 for percentage
+          if (vendor === 'mikrotik' && cpuValue > 100) {
+            cpuValue = cpuValue / 100;
+          }
+          
+          if (!isNaN(cpuValue) && cpuValue >= 0 && cpuValue <= 100) {
+            processCpuData(deviceId, device, cpuValue, pollTimestamp);
+          } else {
+            console.log(`[${deviceId}] Invalid CPU value: ${cpuValue}`);
+          }
+        }
+      });
+    } else {
+      console.log(`[${deviceId}] No CPU OID available for vendor: ${vendor}`);
+    }
   });
   } catch (err) {
     console.error('[POLLING] Error in pollSNMP:', err);
@@ -1274,7 +1536,7 @@ function cleanupOldData() {
         |> delete()
     `;
     
-    const deleteApi = client.getDeleteApi();
+    const deleteApi = client.deleteAPI();
     deleteApi.delete(cutoffTime.getTime(), new Date().getTime(), `_measurement="snmp_metric"`, settings.influxdb.bucket, settings.influxdb.org);
     
     console.log(`\n[DATA RETENTION] Cleanup executed - Removed data older than ${retentionDays} days (cutoff: ${cutoffIso})\n`);
@@ -1397,8 +1659,117 @@ app.get('/api/system-info', (req, res) => {
   });
 });
 
+// Ping monitoring function
+function startPingMonitoring() {
+  console.log('[PING] Starting ping monitoring for', pingTargets.length, 'targets');
+
+  pingTargets.forEach(target => {
+    if (!target.enabled) return;
+
+    ping.promise.probe(target.host, {
+      timeout: 5,
+      min_reply: 1,
+      deadline: 10
+    }).then(result => {
+      addPingToDatabase(target.id, result);
+    }).catch(err => {
+      console.error(`[PING] Error pinging ${target.name} (${target.host}):`, err);
+      // Still record the failed ping
+      addPingToDatabase(target.id, {
+        time: 0,
+        packetLoss: 100,
+        alive: false
+      });
+    });
+  });
+}
+
+// Start ping monitoring
+setInterval(startPingMonitoring, settings.pingInterval);
+
+// API endpoint for ping test
+app.post('/api/ping-test', (req, res) => {
+  const { targetId } = req.body;
+
+  if (!targetId) {
+    return res.status(400).json({ error: 'Target ID is required' });
+  }
+
+  const target = pingTargets.find(t => t.id === parseInt(targetId));
+  if (!target) {
+    return res.status(404).json({ error: 'Target not found' });
+  }
+
+  ping.promise.probe(target.host, {
+    timeout: 5,
+    min_reply: 1,
+    deadline: 10
+  }).then(result => {
+    addPingToDatabase(target.id, result);
+    res.json({
+      targetId: target.id,
+      targetName: target.name,
+      host: target.host,
+      alive: result.alive,
+      time: result.time,
+      packetLoss: result.packetLoss
+    });
+  }).catch(err => {
+    console.error(`[PING API] Error testing ping for ${target.name}:`, err);
+    res.status(500).json({ error: 'Ping test failed' });
+  });
+});
+
+// API endpoint for ping history
+app.get('/api/ping-history/:targetId', async (req, res) => {
+  const { targetId } = req.params;
+
+  try {
+    const queryApi = client.getQueryApi(settings.influxdb.org);
+
+    const fluxQuery = `
+      from(bucket: "${settings.influxdb.bucket}")
+      |> range(start: -30d)
+      |> filter(fn: (r) => r._measurement == "ping_metric")
+      |> filter(fn: (r) => r.target_id == "${targetId}")
+      |> filter(fn: (r) => r._field == "latency" or r._field == "packet_loss" or r._field == "alive")
+      |> sort(columns: ["_time"])
+    `;
+
+    const result = await queryApi.collectRows(fluxQuery);
+
+    // Process the data
+    const data = {};
+    result.forEach(row => {
+      const time = new Date(row._time).getTime();
+      if (!data[time]) {
+        data[time] = {
+          time: time,
+          latency: null,
+          packetLoss: null,
+          alive: null
+        };
+      }
+      data[time][row._field] = row._value;
+    });
+
+    const processedData = Object.values(data).sort((a, b) => a.time - b.time);
+
+    res.json({
+      targetId: parseInt(targetId),
+      data: processedData
+    });
+  } catch (err) {
+    console.error('[PING API] Error fetching ping history:', err);
+    res.status(500).json({ error: 'Failed to fetch ping history' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+  
+  // Start ping monitoring immediately
+  startPingMonitoring();
 });
 
 

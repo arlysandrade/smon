@@ -861,15 +861,25 @@
       const container = document.getElementById(`interfaces-${deviceId}`);
       container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">Loading interfaces...</p>';
       
-      fetch(`/api/devices/${deviceId}/interfaces`)
+      const device = devices[deviceId];
+      
+      fetch('/api/discover-interfaces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: device.host,
+          community: device.community
+        })
+      })
         .then(response => response.json())
-        .then(interfaces => {
+        .then(data => {
+          const interfaces = data.interfaces || [];
+          
           if (interfaces.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-sm col-span-full">No interfaces found</p>';
             return;
           }
           
-          const device = devices[deviceId];
           const selectedInterfaces = device.selectedInterfaces || [];
           
           let html = '';
@@ -883,6 +893,7 @@
                 <input type="checkbox" 
                        name="interface-${deviceId}" 
                        value="${iface.name}" 
+                       data-index="${iface.index}"
                        ${isChecked ? 'checked' : ''}
                        class="w-4 h-4 rounded accent-blue-500">
                 <span class="text-sm text-gray-300 group-hover:text-white">${iface.name}</span>
@@ -900,7 +911,10 @@
 
     function saveInterfaceSelection(deviceId) {
       const checkboxes = document.querySelectorAll(`input[name="interface-${deviceId}"]:checked`);
-      const selectedInterfaces = Array.from(checkboxes).map(cb => cb.value);
+      const selectedInterfaces = Array.from(checkboxes).map(cb => ({
+        index: parseInt(cb.getAttribute('data-index')),
+        name: cb.value
+      }));
       
       fetch(`/api/devices/${deviceId}/select-interfaces`, {
         method: 'POST',
@@ -909,10 +923,15 @@
       })
         .then(response => response.json())
         .then(data => {
+          // Update the displayed selected interfaces
+          const selectedNames = selectedInterfaces.map(iface => iface.name);
           document.getElementById(`selected-${deviceId}`).innerHTML = 
-            selectedInterfaces.length > 0 
-              ? `<span class="inline-block">${selectedInterfaces.join(', ')}</span>`
+            selectedNames.length > 0 
+              ? `<span class="inline-block">${selectedNames.join(', ')}</span>`
               : '<span class="text-gray-500">No interfaces selected</span>';
+          
+          // Update the devices object
+          devices[deviceId].selectedInterfaces = selectedInterfaces;
           
           const notification = document.createElement('div');
           notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg';
@@ -952,34 +971,35 @@
         });
     }
 
-    document.getElementById('add-device-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const formData = new FormData(this);
-      const data = Object.fromEntries(formData);
-      
-      fetch('/api/devices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(device => {
-          const notification = document.createElement('div');
-          notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg';
-          notification.textContent = '✓ Device added successfully';
-          document.body.appendChild(notification);
-          setTimeout(() => location.reload(), 1500);
-        })
-        .catch(err => {
-          console.error('Error adding device:', err);
-          const notification = document.createElement('div');
-          notification.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg';
-          notification.textContent = '✗ Failed to add device';
-          document.body.appendChild(notification);
-          setTimeout(() => notification.remove(), 3000);
-        });
-    });
+    // Remove the form submit handler since we use the button click handler instead
+    // document.getElementById('add-device-form').addEventListener('submit', function(e) {
+    //   e.preventDefault();
+    //   
+    //   const formData = new FormData(this);
+    //   const data = Object.fromEntries(formData);
+    //   
+    //   fetch('/api/devices', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(data)
+    //   })
+    //     .then(response => response.json())
+    //     .then(device => {
+    //       const notification = document.createElement('div');
+    //       notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg';
+    //       notification.textContent = '✓ Device added successfully';
+    //       document.body.appendChild(notification);
+    //       setTimeout(() => location.reload(), 1500);
+    //     })
+    //     .catch(err => {
+    //       console.error('Error adding device:', err);
+    //       const notification = document.createElement('div');
+    //       notification.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg';
+    //       notification.textContent = '✗ Failed to add device';
+    //       document.body.appendChild(notification);
+    //       setTimeout(() => notification.remove(), 3000);
+    //     });
+    // });
 
     // Load interfaces for all devices on page load
     document.addEventListener('DOMContentLoaded', () => {
