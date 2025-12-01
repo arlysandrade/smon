@@ -1,5 +1,102 @@
 [
   {
+    "id": 1764595436634,
+    "timestamp": "2025-12-01T13:23:56.634Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 340
+    }
+  },
+  {
+    "id": 1764595435553,
+    "timestamp": "2025-12-01T13:23:55.553Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 267
+    }
+  },
+  {
+    "id": 1764595375224,
+    "timestamp": "2025-12-01T13:22:55.224Z",
+    "type": "flapping_start",
+    "severity": "warning",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" started flapping",
+    "details": {
+      "id": 2,
+      "name": "Cloudflare DNS",
+      "type": "ping",
+      "host": "1.1.1.1"
+    }
+  },
+  {
+    "id": 1764595255207,
+    "timestamp": "2025-12-01T13:20:55.207Z",
+    "type": "ping_up",
+    "severity": "info",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "latency": 17.8,
+      "packetLoss": 0
+    }
+  },
+  {
+    "id": 1764595151476,
+    "timestamp": "2025-12-01T13:19:11.476Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/"
+    }
+  },
+  {
+    "id": 1764595145230,
+    "timestamp": "2025-12-01T13:19:05.230Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764595145153,
+    "timestamp": "2025-12-01T13:19:05.153Z",
+    "type": "ping_down",
+    "severity": "error",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "packetLoss": 100
+    }
+  },
+  {
     "id": 1764590144090,
     "timestamp": "2025-12-01T11:55:44.090Z",
     "type": "high_latency",
