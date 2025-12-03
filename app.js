@@ -18,57 +18,92 @@ const port = 3000;
 // Key format: `${deviceId}_${interfaceIndex}_${direction}`
 let lastCounterValues = {};
 
+// Track detected high-speed interfaces to apply enhanced multi-wrap detection
+// Key format: `${deviceId}_${interfaceIndex}`, value: estimated speed in Mbps
+let highSpeedInterfaces = {};
+
 // Counter rollover detection and adjustment
 function handleCounterRollover(deviceId, iface, direction, currentValue) {
   const key = `${deviceId}_${iface.index}_${direction}`;
   const previousValue = lastCounterValues[key];
+  const max32Bit = 4294967295; // 2^32 - 1
+  const max64Bit = 18446744073709551615; // 2^64 - 1
   
   // Initialize if first reading
   if (previousValue === undefined) {
     lastCounterValues[key] = currentValue;
-    return currentValue; // Return raw value for first reading
+    return 0; // Return 0 for first reading (no delta to calculate)
   }
   
-  // Detect rollover (current value is less than previous value)
-  if (currentValue < previousValue) {
-    const max32Bit = 4294967295; // 2^32 - 1
-    const max64Bit = 18446744073709551615; // 2^64 - 1
-    const actualDrop = previousValue - currentValue;
-
-    // First, check for single 32-bit rollover (most common case)
-    const drop32Bit = max32Bit - previousValue + currentValue;
-    if (drop32Bit > 0 && drop32Bit < max32Bit * 0.05) {
-      console.log(`[${deviceId}] Counter rollover detected for ${iface.name} ${direction.toUpperCase()}: ${previousValue} -> ${currentValue}, adjusted to ${drop32Bit}`);
+  // NORMAL CASE: current > previous (no rollover)
+  if (currentValue >= previousValue) {
+    const delta = currentValue - previousValue;
+    lastCounterValues[key] = currentValue;
+    return delta;
+  }
+  
+  // ROLLOVER DETECTED: current < previous
+  // This is the key case for high-speed traffic where counter wraps around
+  const actualDrop = previousValue - currentValue;
+  
+  // Multi-wrap detection strategy:
+  // For 32-bit counters with high-speed interfaces:
+  // - If previous is NEAR 32-bit max and current wraps to small value: 1 wrap
+  // - If previous is NOT near max and we see large drop: possible multiple wraps
+  
+  // Pattern 1: Classic single wrap (previous ~4.29GB, current wraps to small)
+  if (previousValue > max32Bit * 0.8) {
+    // Previous was near the top, so single wrap is likely
+    const singleWrap = max32Bit - previousValue + currentValue;
+    if (singleWrap > 0) {
       lastCounterValues[key] = currentValue;
-      return drop32Bit;
-    }
-
-    // Check for 64-bit rollover
-    const drop64Bit = max64Bit - previousValue + currentValue;
-    if (drop64Bit > 0 && drop64Bit < max64Bit * 0.05) {
-      console.log(`[${deviceId}] 64-bit counter rollover detected for ${iface.name} ${direction.toUpperCase()}: ${previousValue} -> ${currentValue}, adjusted to ${drop64Bit}`);
-      lastCounterValues[key] = currentValue;
-      return drop64Bit;
-    }
-
-    // For any drop, treat it as legitimate traffic data unless it looks like a true reset
-    // Most drops are legitimate - only treat as reset if counter goes to very small number
-    if (currentValue < 1000000) { // Less than 1MB - likely a reset
-      console.warn(`[${deviceId}] Possible interface reset for ${iface.name} ${direction.toUpperCase()}: ${previousValue} -> ${currentValue}. Treating as reset.`);
-      lastCounterValues[key] = currentValue;
-      return 0;
-    } else {
-      // Treat the drop as legitimate high-speed traffic
-      console.log(`[${deviceId}] Counter drop detected for ${iface.name} ${direction.toUpperCase()}: ${previousValue} -> ${currentValue}. Treating as legitimate traffic (${(actualDrop / 1000000000).toFixed(2)} GB).`);
-      lastCounterValues[key] = currentValue;
-      return actualDrop;
+      return singleWrap;
     }
   }
   
-  // Normal case: current value is greater than previous
-  const delta = currentValue - previousValue;
+  // Pattern 2: Multiple wraps (previous lower value, but large drop suggests multi-wrap)
+  // For 1Gbps traffic on 60-sec poll: need ~125MB per cycle
+  // Multiple wraps would show: previous=X, current=Y, and (prev - curr) is large
+  
+  // If actualDrop > 1GB (which is impossible in single wrap), definitely multi-wrap
+  if (actualDrop > 1000000000) { // 1GB
+    // Multiple wraps occurred
+    // Calculate wraps assuming each wrap adds 32-bit max to the count
+    let wraps = Math.ceil(actualDrop / max32Bit);
+    let adjustedDelta = (wraps * max32Bit) - previousValue + currentValue;
+    
+    console.log(`[${deviceId}] MULTI-WRAP DETECTED for ${iface.name} ${direction.toUpperCase()}: prev=${previousValue}, curr=${currentValue}, drop=${(actualDrop/1000000000).toFixed(2)}GB, wraps=${wraps}, adjusted=${(adjustedDelta/1000000000).toFixed(2)}GB`);
+    lastCounterValues[key] = currentValue;
+    return adjustedDelta;
+  }
+  
+  // Pattern 3: Significant drop but < 1GB - likely single wrap
+  // Use standard wrap formula
+  const singleWrapDelta = max32Bit - previousValue + currentValue;
+  if (singleWrapDelta > 0 && singleWrapDelta < max32Bit * 2) {
+    lastCounterValues[key] = currentValue;
+    return singleWrapDelta;
+  }
+  
+  // Pattern 4: 64-bit wrap check
+  const drop64Bit = max64Bit - previousValue + currentValue;
+  if (drop64Bit > 0 && drop64Bit < max64Bit * 0.05) {
+    console.log(`[${deviceId}] 64-bit wrap for ${iface.name} ${direction.toUpperCase()}: ${(drop64Bit/1000000000).toFixed(2)}GB`);
+    lastCounterValues[key] = currentValue;
+    return drop64Bit;
+  }
+  
+  // Pattern 5: Interface reset detection
+  if (currentValue < 1000000) { // < 1MB likely reset
+    console.warn(`[${deviceId}] Interface reset for ${iface.name} ${direction.toUpperCase()}: ${previousValue} -> ${currentValue}`);
+    lastCounterValues[key] = currentValue;
+    return 0;
+  }
+  
+  // Default: treat drop as legitimate high-speed traffic
+  console.log(`[${deviceId}] Counter drop for ${iface.name} ${direction.toUpperCase()}: prev=${previousValue}, curr=${currentValue}, drop=${(actualDrop/1000000000).toFixed(2)}GB`);
   lastCounterValues[key] = currentValue;
-  return delta;
+  return actualDrop;
 }
 
 // Cleanup old counter values to prevent memory leaks
@@ -229,6 +264,20 @@ function processRxData(deviceId, device, iface, rxValue, timestamp = new Date())
     // Handle counter rollover and get the actual delta
     const rxDelta = handleCounterRollover(deviceId, iface, 'rx', rxValue);
     
+    // Log high-traffic interfaces for debugging
+    if (rxDelta > 500000000) { // > 500MB delta
+      const deltaGb = (rxDelta / 1000000000).toFixed(2);
+      const estimatedMbps = ((rxDelta * 8 / 1000000) / (settings.pollingInterval / 1000)).toFixed(2);
+      console.log(`[${deviceId}] HIGH-SPEED RX for ${iface.name}: counter=${rxValue}, delta=${deltaGb}GB (~${estimatedMbps}Mbps estimate)`);
+      
+      // Track as high-speed interface for better multi-wrap detection
+      const ifKey = `${deviceId}_${iface.index}`;
+      if (!highSpeedInterfaces[ifKey] || highSpeedInterfaces[ifKey] < estimatedMbps) {
+        highSpeedInterfaces[ifKey] = estimatedMbps;
+        console.log(`[${deviceId}] Interface ${iface.name} marked as HIGH-SPEED (${estimatedMbps} Mbps)`);
+      }
+    }
+    
     const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
     const rxPoint = new Point('snmp_metric')
       .tag('device', deviceId)
@@ -254,6 +303,20 @@ function processTxData(deviceId, device, iface, txValue, timestamp = new Date())
   try {
     // Handle counter rollover and get the actual delta
     const txDelta = handleCounterRollover(deviceId, iface, 'tx', txValue);
+    
+    // Log high-traffic interfaces for debugging
+    if (txDelta > 500000000) { // > 500MB delta
+      const deltaGb = (txDelta / 1000000000).toFixed(2);
+      const estimatedMbps = ((txDelta * 8 / 1000000) / (settings.pollingInterval / 1000)).toFixed(2);
+      console.log(`[${deviceId}] HIGH-SPEED TX for ${iface.name}: counter=${txValue}, delta=${deltaGb}GB (~${estimatedMbps}Mbps estimate)`);
+      
+      // Track as high-speed interface for better multi-wrap detection
+      const ifKey = `${deviceId}_${iface.index}`;
+      if (!highSpeedInterfaces[ifKey] || highSpeedInterfaces[ifKey] < estimatedMbps) {
+        highSpeedInterfaces[ifKey] = estimatedMbps;
+        console.log(`[${deviceId}] Interface ${iface.name} marked as HIGH-SPEED (${estimatedMbps} Mbps)`);
+      }
+    }
     
     const writeApi = client.getWriteApi(settings.influxdb.org, settings.influxdb.bucket);
     const txPoint = new Point('snmp_metric')
@@ -3129,11 +3192,30 @@ function pollSNMP() {
         } else if (!rxVarbinds64 || snmp.isVarbindError(rxVarbinds64[0])) {
           console.log(`[${deviceId}] 64-bit RX varbind error for ${iface.name}, falling back to 32-bit`);
         } else {
-          // Try to convert 64-bit value - it might be a BigInt, string, or number
+          // Try to convert 64-bit value - it might be a BigInt, string, number, or Uint8Array
           let val = rxVarbinds64[0].value;
           
+          // Debug: Log raw value info
+          if (iface.name === 'sfp-sfpplus14') {
+            console.log(`[${deviceId}] DEBUG sfp-sfpplus14 RX 64-bit value: type=${typeof val}, value=${val}, toString=${Object.prototype.toString.call(val)}`);
+          }
+          
+          // Handle Uint8Array (binary buffer from SNMP)
+          if (val instanceof Uint8Array || (typeof val === 'object' && val.buffer instanceof ArrayBuffer)) {
+            // Convert Uint8Array to number
+            let num = 0n; // Use BigInt for 64-bit
+            const bytes = new Uint8Array(val);
+            for (let i = 0; i < bytes.length; i++) {
+              num = (num << 8n) | BigInt(bytes[i]);
+            }
+            rxValue = Number(num);
+            use64bit = true;
+            if (iface.name === 'sfp-sfpplus14') {
+              console.log(`[${deviceId}] DEBUG Converted Uint8Array RX to: ${rxValue}`);
+            }
+          } 
           // Check if it's a valid number or can be converted to number
-          if (typeof val === 'bigint') {
+          else if (typeof val === 'bigint') {
             rxValue = Number(val);
             use64bit = true;
           } else if (typeof val === 'string') {
@@ -3199,8 +3281,28 @@ function pollSNMP() {
           // Try to convert 64-bit value - it might be a BigInt, string, or number
           let val = txVarbinds64[0].value;
           
+          // Debug: Log raw value info
+          if (iface.name === 'sfp-sfpplus14') {
+            console.log(`[${deviceId}] DEBUG sfp-sfpplus14 TX 64-bit value: type=${typeof val}, value=${val}, toString=${Object.prototype.toString.call(val)}`);
+          }
+          
           // Check if it's a valid number or can be converted to number
-          if (typeof val === 'bigint') {
+          // Handle Uint8Array (binary buffer from SNMP)
+          if (val instanceof Uint8Array || (typeof val === 'object' && val.buffer instanceof ArrayBuffer)) {
+            // Convert Uint8Array to number
+            let num = 0n; // Use BigInt for 64-bit
+            const bytes = new Uint8Array(val);
+            for (let i = 0; i < bytes.length; i++) {
+              num = (num << 8n) | BigInt(bytes[i]);
+            }
+            txValue = Number(num);
+            use64bit = true;
+            if (iface.name === 'sfp-sfpplus14') {
+              console.log(`[${deviceId}] DEBUG Converted Uint8Array TX to: ${txValue}`);
+            }
+          } 
+          // Check if it's a valid number or can be converted to number
+          else if (typeof val === 'bigint') {
             txValue = Number(val);
             use64bit = true;
           } else if (typeof val === 'string') {

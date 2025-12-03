@@ -1,5 +1,1909 @@
 [
   {
+    "id": 1764774563515,
+    "timestamp": "2025-12-03T15:09:23.515Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 90.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 90.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764774563490,
+    "timestamp": "2025-12-03T15:09:23.490Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) has high latency: 80.2ms",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "latency": 80.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764772163247,
+    "timestamp": "2025-12-03T14:29:23.247Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) has high latency: 76.5ms",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "latency": 76.5,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764772163227,
+    "timestamp": "2025-12-03T14:29:23.227Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.1ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.1,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764770669950,
+    "timestamp": "2025-12-03T14:04:29.950Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 70.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 70.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764770486751,
+    "timestamp": "2025-12-03T14:01:26.751Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 62.5ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 62.5,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764770301491,
+    "timestamp": "2025-12-03T13:58:21.491Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 77ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 77,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764769610748,
+    "timestamp": "2025-12-03T13:46:50.748Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 75ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 75,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764769490750,
+    "timestamp": "2025-12-03T13:44:50.750Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 77.8ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 77.8,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764769370745,
+    "timestamp": "2025-12-03T13:42:50.745Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 72.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 72.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764769140777,
+    "timestamp": "2025-12-03T13:39:00.778Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764769130761,
+    "timestamp": "2025-12-03T13:38:50.761Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764769010745,
+    "timestamp": "2025-12-03T13:36:50.745Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 74.1ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 74.1,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768890748,
+    "timestamp": "2025-12-03T13:34:50.748Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 78.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 78.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768770750,
+    "timestamp": "2025-12-03T13:32:50.750Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768650751,
+    "timestamp": "2025-12-03T13:30:50.751Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.7ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.7,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768530758,
+    "timestamp": "2025-12-03T13:28:50.758Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768410741,
+    "timestamp": "2025-12-03T13:26:50.741Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 71.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 71.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768290742,
+    "timestamp": "2025-12-03T13:24:50.742Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 68ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 68,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768231063,
+    "timestamp": "2025-12-03T13:23:51.063Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 324
+    }
+  },
+  {
+    "id": 1764768170743,
+    "timestamp": "2025-12-03T13:22:50.743Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 72.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 72.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764768050743,
+    "timestamp": "2025-12-03T13:20:50.743Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 73.9ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 73.9,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764767894122,
+    "timestamp": "2025-12-03T13:18:14.122Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764767776014,
+    "timestamp": "2025-12-03T13:16:16.014Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 323
+    }
+  },
+  {
+    "id": 1764767762894,
+    "timestamp": "2025-12-03T13:16:02.894Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 2442
+    }
+  },
+  {
+    "id": 1764767700460,
+    "timestamp": "2025-12-03T13:15:00.460Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764767580463,
+    "timestamp": "2025-12-03T13:13:00.463Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764767007191,
+    "timestamp": "2025-12-03T13:03:27.191Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 67.4ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 67.4,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766817246,
+    "timestamp": "2025-12-03T13:00:17.246Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766697248,
+    "timestamp": "2025-12-03T12:58:17.248Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.5ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.5,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766578833,
+    "timestamp": "2025-12-03T12:56:18.833Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 283
+    }
+  },
+  {
+    "id": 1764766479570,
+    "timestamp": "2025-12-03T12:54:39.570Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.9ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.9,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766359591,
+    "timestamp": "2025-12-03T12:52:39.591Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766239579,
+    "timestamp": "2025-12-03T12:50:39.579Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764766119579,
+    "timestamp": "2025-12-03T12:48:39.579Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 83.7ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 83.7,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765999574,
+    "timestamp": "2025-12-03T12:46:39.574Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 79.8ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 79.8,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765879570,
+    "timestamp": "2025-12-03T12:44:39.570Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 78.8ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 78.8,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765759592,
+    "timestamp": "2025-12-03T12:42:39.592Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765639572,
+    "timestamp": "2025-12-03T12:40:39.572Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 79.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 79.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765519579,
+    "timestamp": "2025-12-03T12:38:39.579Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765399574,
+    "timestamp": "2025-12-03T12:36:39.574Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.1ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.1,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765279574,
+    "timestamp": "2025-12-03T12:34:39.574Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.9ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.9,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765159568,
+    "timestamp": "2025-12-03T12:32:39.568Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 74.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 74.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764765039569,
+    "timestamp": "2025-12-03T12:30:39.569Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.1ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.1,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764919569,
+    "timestamp": "2025-12-03T12:28:39.569Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.6ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.6,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764799567,
+    "timestamp": "2025-12-03T12:26:39.567Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 82.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 82.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764679564,
+    "timestamp": "2025-12-03T12:24:39.564Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 76.3ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 76.3,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764569613,
+    "timestamp": "2025-12-03T12:22:49.613Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764764559555,
+    "timestamp": "2025-12-03T12:22:39.555Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 65.4ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 65.4,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764439573,
+    "timestamp": "2025-12-03T12:20:39.573Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.9ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.9,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764319550,
+    "timestamp": "2025-12-03T12:18:39.550Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 65.4ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 65.4,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764764260182,
+    "timestamp": "2025-12-03T12:17:40.182Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 595
+    }
+  },
+  {
+    "id": 1764763071217,
+    "timestamp": "2025-12-03T11:57:51.217Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is back online",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com",
+      "responseTime": 317
+    }
+  },
+  {
+    "id": 1764762770986,
+    "timestamp": "2025-12-03T11:52:50.986Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is down",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com"
+    }
+  },
+  {
+    "id": 1764762469594,
+    "timestamp": "2025-12-03T11:47:49.594Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764762160126,
+    "timestamp": "2025-12-03T11:42:40.126Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 540
+    }
+  },
+  {
+    "id": 1764761869642,
+    "timestamp": "2025-12-03T11:37:49.642Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764761261468,
+    "timestamp": "2025-12-03T11:27:41.468Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 1900
+    }
+  },
+  {
+    "id": 1764760069582,
+    "timestamp": "2025-12-03T11:07:49.582Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764759765268,
+    "timestamp": "2025-12-03T11:02:45.268Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 4679
+    }
+  },
+  {
+    "id": 1764758869569,
+    "timestamp": "2025-12-03T10:47:49.569Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764758560078,
+    "timestamp": "2025-12-03T10:42:40.078Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 526
+    }
+  },
+  {
+    "id": 1764758269589,
+    "timestamp": "2025-12-03T10:37:49.589Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764757959842,
+    "timestamp": "2025-12-03T10:32:39.842Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 286
+    }
+  },
+  {
+    "id": 1764757069541,
+    "timestamp": "2025-12-03T10:17:49.541Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764756760520,
+    "timestamp": "2025-12-03T10:12:40.520Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 980
+    }
+  },
+  {
+    "id": 1764756169554,
+    "timestamp": "2025-12-03T10:02:49.554Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764755860057,
+    "timestamp": "2025-12-03T09:57:40.057Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 519
+    }
+  },
+  {
+    "id": 1764753769518,
+    "timestamp": "2025-12-03T09:22:49.518Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764752560044,
+    "timestamp": "2025-12-03T09:02:40.044Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 524
+    }
+  },
+  {
+    "id": 1764752261009,
+    "timestamp": "2025-12-03T08:57:41.009Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is back online",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com",
+      "responseTime": 410
+    }
+  },
+  {
+    "id": 1764751970665,
+    "timestamp": "2025-12-03T08:52:50.665Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is down",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com"
+    }
+  },
+  {
+    "id": 1764751969517,
+    "timestamp": "2025-12-03T08:52:49.517Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764751660077,
+    "timestamp": "2025-12-03T08:47:40.077Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 555
+    }
+  },
+  {
+    "id": 1764751369523,
+    "timestamp": "2025-12-03T08:42:49.523Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764750460038,
+    "timestamp": "2025-12-03T08:27:40.038Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 531
+    }
+  },
+  {
+    "id": 1764749869505,
+    "timestamp": "2025-12-03T08:17:49.505Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764749560098,
+    "timestamp": "2025-12-03T08:12:40.098Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 587
+    }
+  },
+  {
+    "id": 1764749269504,
+    "timestamp": "2025-12-03T08:07:49.504Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764748960052,
+    "timestamp": "2025-12-03T08:02:40.052Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 548
+    }
+  },
+  {
+    "id": 1764747769504,
+    "timestamp": "2025-12-03T07:42:49.504Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764711704120,
+    "timestamp": "2025-12-02T21:41:44.120Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 544
+    }
+  },
+  {
+    "id": 1764711403676,
+    "timestamp": "2025-12-02T21:36:43.676Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764695804323,
+    "timestamp": "2025-12-02T17:16:44.323Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/",
+      "responseTime": 318
+    }
+  },
+  {
+    "id": 1764695513937,
+    "timestamp": "2025-12-02T17:11:53.937Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/"
+    }
+  },
+  {
+    "id": 1764685003388,
+    "timestamp": "2025-12-02T14:16:43.388Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.9ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.9,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764684404906,
+    "timestamp": "2025-12-02T14:06:44.906Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is back online",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com",
+      "responseTime": 138
+    }
+  },
+  {
+    "id": 1764684404686,
+    "timestamp": "2025-12-02T14:06:44.686Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 278
+    }
+  },
+  {
+    "id": 1764684404347,
+    "timestamp": "2025-12-02T14:06:44.347Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Repository",
+    "message": "Website \"Repository\" (https://repo.indobsd.id) is back online",
+    "details": {
+      "targetId": 3,
+      "targetName": "Repository",
+      "url": "https://repo.indobsd.id",
+      "responseTime": 183
+    }
+  },
+  {
+    "id": 1764684404099,
+    "timestamp": "2025-12-02T14:06:44.099Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/",
+      "responseTime": 279
+    }
+  },
+  {
+    "id": 1764684136460,
+    "timestamp": "2025-12-02T14:02:16.460Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is down",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com"
+    }
+  },
+  {
+    "id": 1764684136193,
+    "timestamp": "2025-12-02T14:02:16.193Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/"
+    }
+  },
+  {
+    "id": 1764684135921,
+    "timestamp": "2025-12-02T14:02:15.921Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Repository",
+    "message": "Website \"Repository\" (https://repo.indobsd.id) is down",
+    "details": {
+      "targetId": 3,
+      "targetName": "Repository",
+      "url": "https://repo.indobsd.id"
+    }
+  },
+  {
+    "id": 1764684125899,
+    "timestamp": "2025-12-02T14:02:05.899Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/"
+    }
+  },
+  {
+    "id": 1764681704757,
+    "timestamp": "2025-12-02T13:21:44.757Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 300
+    }
+  },
+  {
+    "id": 1764681704399,
+    "timestamp": "2025-12-02T13:21:44.399Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Repository",
+    "message": "Website \"Repository\" (https://repo.indobsd.id) is back online",
+    "details": {
+      "targetId": 3,
+      "targetName": "Repository",
+      "url": "https://repo.indobsd.id",
+      "responseTime": 274
+    }
+  },
+  {
+    "id": 1764681704064,
+    "timestamp": "2025-12-02T13:21:44.064Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/",
+      "responseTime": 224
+    }
+  },
+  {
+    "id": 1764681703763,
+    "timestamp": "2025-12-02T13:21:43.763Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 386
+    }
+  },
+  {
+    "id": 1764681523328,
+    "timestamp": "2025-12-02T13:18:43.328Z",
+    "type": "ping_up",
+    "severity": "info",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "latency": 29.8,
+      "packetLoss": 0
+    }
+  },
+  {
+    "id": 1764681523320,
+    "timestamp": "2025-12-02T13:18:43.320Z",
+    "type": "ping_up",
+    "severity": "info",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "latency": 17.6,
+      "packetLoss": 0
+    }
+  },
+  {
+    "id": 1764681433718,
+    "timestamp": "2025-12-02T13:17:13.718Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/"
+    }
+  },
+  {
+    "id": 1764681433413,
+    "timestamp": "2025-12-02T13:17:13.413Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Repository",
+    "message": "Website \"Repository\" (https://repo.indobsd.id) is down",
+    "details": {
+      "targetId": 3,
+      "targetName": "Repository",
+      "url": "https://repo.indobsd.id"
+    }
+  },
+  {
+    "id": 1764681423395,
+    "timestamp": "2025-12-02T13:17:03.395Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/"
+    }
+  },
+  {
+    "id": 1764681413337,
+    "timestamp": "2025-12-02T13:16:53.337Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764681413310,
+    "timestamp": "2025-12-02T13:16:53.310Z",
+    "type": "ping_down",
+    "severity": "error",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "packetLoss": 100
+    }
+  },
+  {
+    "id": 1764681413307,
+    "timestamp": "2025-12-02T13:16:53.307Z",
+    "type": "flapping_stop",
+    "severity": "info",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" stopped flapping after 10 minutes",
+    "details": {
+      "id": 4,
+      "name": "OpenDNS",
+      "type": "ping",
+      "host": "208.67.222.222",
+      "durationMinutes": 10
+    }
+  },
+  {
+    "id": 1764681413299,
+    "timestamp": "2025-12-02T13:16:53.299Z",
+    "type": "ping_down",
+    "severity": "error",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "packetLoss": 100
+    }
+  },
+  {
+    "id": 1764681413291,
+    "timestamp": "2025-12-02T13:16:53.291Z",
+    "type": "flapping_stop",
+    "severity": "info",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" stopped flapping after 10 minutes",
+    "details": {
+      "id": 2,
+      "name": "Cloudflare DNS",
+      "type": "ping",
+      "host": "1.1.1.1",
+      "durationMinutes": 10
+    }
+  },
+  {
+    "id": 1764680805191,
+    "timestamp": "2025-12-02T13:06:45.191Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is back online",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com",
+      "responseTime": 295
+    }
+  },
+  {
+    "id": 1764680804814,
+    "timestamp": "2025-12-02T13:06:44.814Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 288
+    }
+  },
+  {
+    "id": 1764680803319,
+    "timestamp": "2025-12-02T13:06:43.319Z",
+    "type": "flapping_start",
+    "severity": "warning",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" started flapping",
+    "details": {
+      "id": 4,
+      "name": "OpenDNS",
+      "type": "ping",
+      "host": "208.67.222.222"
+    }
+  },
+  {
+    "id": 1764680803310,
+    "timestamp": "2025-12-02T13:06:43.310Z",
+    "type": "flapping_start",
+    "severity": "warning",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" started flapping",
+    "details": {
+      "id": 2,
+      "name": "Cloudflare DNS",
+      "type": "ping",
+      "host": "1.1.1.1"
+    }
+  },
+  {
+    "id": 1764680683320,
+    "timestamp": "2025-12-02T13:04:43.320Z",
+    "type": "ping_up",
+    "severity": "info",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "latency": 30.1,
+      "packetLoss": 0
+    }
+  },
+  {
+    "id": 1764680683312,
+    "timestamp": "2025-12-02T13:04:43.312Z",
+    "type": "ping_up",
+    "severity": "info",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "latency": 18.6,
+      "packetLoss": 0
+    }
+  },
+  {
+    "id": 1764680573294,
+    "timestamp": "2025-12-02T13:02:53.294Z",
+    "type": "ping_down",
+    "severity": "error",
+    "source": "OpenDNS",
+    "message": "Ping target \"OpenDNS\" (208.67.222.222) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "OpenDNS",
+      "host": "208.67.222.222",
+      "packetLoss": 100
+    }
+  },
+  {
+    "id": 1764680573280,
+    "timestamp": "2025-12-02T13:02:53.280Z",
+    "type": "ping_down",
+    "severity": "error",
+    "source": "Cloudflare DNS",
+    "message": "Ping target \"Cloudflare DNS\" (1.1.1.1) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "Cloudflare DNS",
+      "host": "1.1.1.1",
+      "packetLoss": 100
+    }
+  },
+  {
+    "id": 1764680508051,
+    "timestamp": "2025-12-02T13:01:48.051Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is down",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com"
+    }
+  },
+  {
+    "id": 1764680507781,
+    "timestamp": "2025-12-02T13:01:47.781Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/"
+    }
+  },
+  {
+    "id": 1764679903763,
+    "timestamp": "2025-12-02T12:51:43.763Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is back online",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/",
+      "responseTime": 386
+    }
+  },
+  {
+    "id": 1764679613327,
+    "timestamp": "2025-12-02T12:46:53.327Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "IndoBSD",
+    "message": "Website \"IndoBSD\" (https://indobsd.id/) is down",
+    "details": {
+      "targetId": 1,
+      "targetName": "IndoBSD",
+      "url": "https://indobsd.id/"
+    }
+  },
+  {
+    "id": 1764679304844,
+    "timestamp": "2025-12-02T12:41:44.844Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is back online",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/",
+      "responseTime": 284
+    }
+  },
+  {
+    "id": 1764679123356,
+    "timestamp": "2025-12-02T12:38:43.356Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81.2ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81.2,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764679004539,
+    "timestamp": "2025-12-02T12:36:44.539Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Facebook",
+    "message": "Website \"Facebook\" (https://www.facebook.com/) is down",
+    "details": {
+      "targetId": 4,
+      "targetName": "Facebook",
+      "url": "https://www.facebook.com/"
+    }
+  },
+  {
+    "id": 1764679003355,
+    "timestamp": "2025-12-02T12:36:43.355Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 80.7ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 80.7,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764660763250,
+    "timestamp": "2025-12-02T07:32:43.250Z",
+    "type": "high_latency",
+    "severity": "warning",
+    "source": "Google DNS",
+    "message": "Ping target \"Google DNS\" (8.8.8.8) has high latency: 81ms",
+    "details": {
+      "targetId": 1,
+      "targetName": "Google DNS",
+      "host": "8.8.8.8",
+      "latency": 81,
+      "packetLoss": 0,
+      "threshold": 50
+    }
+  },
+  {
+    "id": 1764660710612,
+    "timestamp": "2025-12-02T07:31:50.612Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is back online",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com",
+      "responseTime": 5631
+    }
+  },
+  {
+    "id": 1764660404913,
+    "timestamp": "2025-12-02T07:26:44.913Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "Google",
+    "message": "Website \"Google\" (https://www.google.com) is down",
+    "details": {
+      "targetId": 5,
+      "targetName": "Google",
+      "url": "https://www.google.com"
+    }
+  },
+  {
+    "id": 1764660404106,
+    "timestamp": "2025-12-02T07:26:44.106Z",
+    "type": "website_up",
+    "severity": "info",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is back online",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/",
+      "responseTime": 295
+    }
+  },
+  {
+    "id": 1764660113714,
+    "timestamp": "2025-12-02T07:21:53.714Z",
+    "type": "website_down",
+    "severity": "error",
+    "source": "PBDjarum",
+    "message": "Website \"PBDjarum\" (https://pbdjarum.org/) is down",
+    "details": {
+      "targetId": 2,
+      "targetName": "PBDjarum",
+      "url": "https://pbdjarum.org/"
+    }
+  },
+  {
+    "id": 1764654403218,
+    "timestamp": "2025-12-02T05:46:43.218Z",
+    "type": "device_online",
+    "severity": "info",
+    "source": "Distribusi Router Ipe",
+    "message": "Device \"Distribusi Router Ipe\" (172.16.27.2) is now online",
+    "details": {
+      "deviceId": "distri-ipe",
+      "deviceName": "Distribusi Router Ipe",
+      "host": "172.16.27.2"
+    }
+  },
+  {
+    "id": 1764654403210,
+    "timestamp": "2025-12-02T05:46:43.210Z",
+    "type": "device_offline",
+    "severity": "error",
+    "source": "Distribusi Router Ipe",
+    "message": "Device \"Distribusi Router Ipe\" (172.16.27.2) is offline - no response for 5 minutes",
+    "details": {
+      "deviceId": "distri-ipe",
+      "deviceName": "Distribusi Router Ipe",
+      "host": "172.16.27.2",
+      "timeSinceLastResponse": 300002
+    }
+  },
+  {
     "id": 1764599035265,
     "timestamp": "2025-12-01T14:23:55.265Z",
     "type": "device_online",
