@@ -1,0 +1,138 @@
+{
+  "nodes": [
+    {
+      "id": "router-core",
+      "label": "Core Router",
+      "ip": "10.0.0.1",
+      "type": "router",
+      "x": 150,
+      "y": 100,
+      "probeType": "ping",
+      "probeTarget": "10.0.0.1",
+      "icon": "router"
+    },
+    {
+      "id": "switch-lantai1",
+      "label": "Switch Lantai 1",
+      "ip": "10.1.1.1",
+      "type": "switch",
+      "x": 400,
+      "y": 100,
+      "probeType": "ping",
+      "probeTarget": "10.1.1.1",
+      "icon": "switch"
+    },
+    {
+      "id": "ap-wifi1",
+      "label": "AP WiFi 1",
+      "ip": "10.1.1.5",
+      "type": "access-point",
+      "x": 300,
+      "y": 250,
+      "probeType": "ping",
+      "probeTarget": "10.1.1.5",
+      "icon": "wifi"
+    },
+    {
+      "id": "ap-wifi2",
+      "label": "AP WiFi 2",
+      "ip": "10.1.1.6",
+      "type": "access-point",
+      "x": 500,
+      "y": 250,
+      "probeType": "ping",
+      "probeTarget": "10.1.1.6",
+      "icon": "wifi"
+    },
+    {
+      "id": "server-cloud",
+      "label": "Cloud Server",
+      "ip": "203.0.113.10",
+      "type": "server",
+      "x": 150,
+      "y": 350,
+      "probeType": "ping",
+      "probeTarget": "203.0.113.10",
+      "icon": "server"
+    },
+    {
+      "id": "site-branch",
+      "label": "Branch Office",
+      "ip": "192.168.1.1",
+      "type": "site",
+      "x": 700,
+      "y": 150,
+      "probeType": "ping",
+      "probeTarget": "192.168.1.1",
+      "icon": "building"
+    }
+  ],
+  "links": [
+    {
+      "id": "link-1",
+      "source": "router-core",
+      "target": "switch-lantai1",
+      "label": "LAN Link (Gig0/1-0/2)",
+      "bwMonitor": false,
+      "latencyThreshold": 10,
+      "description": "Internal network link to floor 1 switch"
+    },
+    {
+      "id": "link-2",
+      "source": "switch-lantai1",
+      "target": "ap-wifi1",
+      "label": "WiFi AP 1 Connection",
+      "bwMonitor": false,
+      "latencyThreshold": 5,
+      "description": "Access point 1 uplink"
+    },
+    {
+      "id": "link-3",
+      "source": "switch-lantai1",
+      "target": "ap-wifi2",
+      "label": "WiFi AP 2 Connection",
+      "bwMonitor": false,
+      "latencyThreshold": 5,
+      "description": "Access point 2 uplink"
+    },
+    {
+      "id": "link-4",
+      "source": "router-core",
+      "target": "server-cloud",
+      "label": "WAN Uplink to Cloud",
+      "bwMonitor": true,
+      "minExpectedBw": 100,
+      "latencyThreshold": 50,
+      "description": "Primary internet connection via ISP"
+    },
+    {
+      "id": "link-5",
+      "source": "router-core",
+      "target": "site-branch",
+      "label": "VPN Tunnel to Branch",
+      "bwMonitor": false,
+      "latencyThreshold": 100,
+      "description": "IPSec VPN connection to branch office"
+    }
+  ],
+  "views": [
+    {
+      "name": "Default View",
+      "description": "Complete network topology",
+      "layout": "cose",
+      "default": true
+    },
+    {
+      "name": "Hierarchical View",
+      "description": "Hierarchical layout from core to edge",
+      "layout": "hierarchical",
+      "default": false
+    },
+    {
+      "name": "Geographic View",
+      "description": "Geographic layout by location",
+      "layout": "grid",
+      "default": false
+    }
+  ]
+}

@@ -1285,6 +1285,107 @@ function savePingTargets() {
   console.log('Ping targets saved');
 }
 
+// ============================================
+// TOPOLOGY MAP MANAGEMENT
+// ============================================
+
+const topologyFile = './data/topology.json';
+
+let topology = {
+  nodes: [],
+  links: [],
+  views: []
+};
+
+function loadTopology() {
+  try {
+    if (fs.existsSync(topologyFile)) {
+      const data = fs.readFileSync(topologyFile, 'utf8');
+      topology = JSON.parse(data);
+      console.log(`✓ Topology loaded: ${topology.nodes.length} nodes, ${topology.links.length} links`);
+    } else {
+      console.log('ℹ No topology.json found - using empty topology');
+      topology = { nodes: [], links: [], views: [] };
+    }
+  } catch (err) {
+    console.error('Error loading topology:', err.message);
+    topology = { nodes: [], links: [], views: [] };
+  }
+}
+
+function saveTopology() {
+  try {
+    // Ensure data directory exists
+    if (!fs.existsSync('./data')) {
+      fs.mkdirSync('./data', { recursive: true });
+    }
+    fs.writeFileSync(topologyFile, JSON.stringify(topology, null, 2));
+    console.log('✓ Topology saved');
+  } catch (err) {
+    console.error('Error saving topology:', err.message);
+  }
+}
+
+// Get real-time status of topology nodes and links
+function getTopologyStatus() {
+  const nodeStatus = {};
+  const linkStatus = {};
+
+  // Get node status from ping history and ping targets
+  for (const node of topology.nodes) {
+    if (node.probeType === 'ping' && node.probeTarget) {
+      const pingTarget = pingTargets.find(t => t.host === node.probeTarget || t.host === node.ip);
+      if (pingTarget && pingStatusHistory[pingTarget.id]) {
+        const history = pingStatusHistory[pingTarget.id];
+        nodeStatus[node.id] = {
+          status: history.status || 'unknown',
+          latency: history.latency || 0,
+          packetLoss: history.packetLoss || 0,
+          lastUpdate: history.lastUpdate || new Date().toISOString()
+        };
+      } else {
+        nodeStatus[node.id] = {
+          status: 'unknown',
+          latency: 0,
+          packetLoss: 0,
+          lastUpdate: new Date().toISOString()
+        };
+      }
+    }
+  }
+
+  // Get link status based on connected nodes
+  for (const link of topology.links) {
+    const sourceStatus = nodeStatus[link.source]?.status || 'unknown';
+    const targetStatus = nodeStatus[link.target]?.status || 'unknown';
+    
+    let quality = 'unknown';
+    if (sourceStatus === 'up' && targetStatus === 'up') {
+      const sourceLatency = nodeStatus[link.source]?.latency || 0;
+      const targetLatency = nodeStatus[link.target]?.latency || 0;
+      const avgLatency = (sourceLatency + targetLatency) / 2;
+      
+      if (avgLatency > (link.latencyThreshold || 100)) {
+        quality = 'warning';
+      } else {
+        quality = 'good';
+      }
+    } else if (sourceStatus === 'down' || targetStatus === 'down') {
+      quality = 'critical';
+    }
+
+    linkStatus[link.id] = {
+      status: sourceStatus === 'up' && targetStatus === 'up' ? 'up' : 'down',
+      quality: quality,
+      sourceLatency: nodeStatus[link.source]?.latency || 0,
+      targetLatency: nodeStatus[link.target]?.latency || 0,
+      lastUpdate: new Date().toISOString()
+    };
+  }
+
+  return { nodes: nodeStatus, links: linkStatus };
+}
+
 // Helper function to save website targets
 function saveWebsiteTargets() {
   fs.writeFileSync(websiteTargetsFile, JSON.stringify(websiteTargets, null, 2));
@@ -1572,6 +1673,15 @@ app.get('/websites', (req, res) => {
   res.render('websites', { 
     websiteTargets: websiteTargets,
     groupedTargets: groupedTargets,
+    settings: settings,
+    pollingIntervalSeconds: settings.pollingInterval / 1000,
+    pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
+  });
+});
+
+// Network Topology Map Page
+app.get('/map', (req, res) => {
+  res.render('map', {
     settings: settings,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
     pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
@@ -4247,6 +4357,254 @@ app.post('/api/sync-offline-data', (req, res) => {
   }
 });
 
+// ============================================
+// TOPOLOGY MAP API ENDPOINTS
+// ============================================
+
+// GET topology structure with real-time status
+app.get('/api/topology', (req, res) => {
+  try {
+    const status = getTopologyStatus();
+    res.json({
+      nodes: topology.nodes,
+      links: topology.links,
+      views: topology.views,
+      status: status,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Error fetching topology:', err);
+    res.status(500).json({ error: 'Failed to fetch topology' });
+  }
+});
+
+// GET topology nodes
+app.get('/api/topology/nodes', (req, res) => {
+  try {
+    const status = getTopologyStatus();
+    res.json({
+      nodes: topology.nodes,
+      nodeStatus: status.nodes
+    });
+  } catch (err) {
+    console.error('Error fetching topology nodes:', err);
+    res.status(500).json({ error: 'Failed to fetch topology nodes' });
+  }
+});
+
+// GET topology links
+app.get('/api/topology/links', (req, res) => {
+  try {
+    const status = getTopologyStatus();
+    res.json({
+      links: topology.links,
+      linkStatus: status.links
+    });
+  } catch (err) {
+    console.error('Error fetching topology links:', err);
+    res.status(500).json({ error: 'Failed to fetch topology links' });
+  }
+});
+
+// POST create new topology node
+app.post('/api/topology/nodes', (req, res) => {
+  try {
+    const { id, label, ip, type, x, y, probeType, probeTarget, icon } = req.body;
+
+    if (!id || !label) {
+      return res.status(400).json({ error: 'id and label are required' });
+    }
+
+    // Check if node exists
+    if (topology.nodes.find(n => n.id === id)) {
+      return res.status(400).json({ error: 'Node with this ID already exists' });
+    }
+
+    const newNode = {
+      id,
+      label,
+      ip: ip || '',
+      type: type || 'device',
+      x: x || Math.random() * 500,
+      y: y || Math.random() * 500,
+      probeType: probeType || 'ping',
+      probeTarget: probeTarget || '',
+      icon: icon || 'device'
+    };
+
+    topology.nodes.push(newNode);
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Node created successfully',
+      node: newNode
+    });
+  } catch (err) {
+    console.error('Error creating topology node:', err);
+    res.status(500).json({ error: 'Failed to create node' });
+  }
+});
+
+// PUT update topology node
+app.put('/api/topology/nodes/:id', (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const { label, ip, type, x, y, probeType, probeTarget, icon } = req.body;
+
+    const node = topology.nodes.find(n => n.id === nodeId);
+    if (!node) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    if (label !== undefined) node.label = label;
+    if (ip !== undefined) node.ip = ip;
+    if (type !== undefined) node.type = type;
+    if (x !== undefined) node.x = x;
+    if (y !== undefined) node.y = y;
+    if (probeType !== undefined) node.probeType = probeType;
+    if (probeTarget !== undefined) node.probeTarget = probeTarget;
+    if (icon !== undefined) node.icon = icon;
+
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Node updated successfully',
+      node: node
+    });
+  } catch (err) {
+    console.error('Error updating topology node:', err);
+    res.status(500).json({ error: 'Failed to update node' });
+  }
+});
+
+// DELETE topology node
+app.delete('/api/topology/nodes/:id', (req, res) => {
+  try {
+    const nodeId = req.params.id;
+    const index = topology.nodes.findIndex(n => n.id === nodeId);
+
+    if (index === -1) {
+      return res.status(404).json({ error: 'Node not found' });
+    }
+
+    // Remove node
+    topology.nodes.splice(index, 1);
+
+    // Remove links connected to this node
+    topology.links = topology.links.filter(l => l.source !== nodeId && l.target !== nodeId);
+
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Node deleted successfully'
+    });
+  } catch (err) {
+    console.error('Error deleting topology node:', err);
+    res.status(500).json({ error: 'Failed to delete node' });
+  }
+});
+
+// POST create new topology link
+app.post('/api/topology/links', (req, res) => {
+  try {
+    const { id, source, target, label, bwMonitor, latencyThreshold, description } = req.body;
+
+    if (!id || !source || !target) {
+      return res.status(400).json({ error: 'id, source, and target are required' });
+    }
+
+    // Verify nodes exist
+    if (!topology.nodes.find(n => n.id === source)) {
+      return res.status(400).json({ error: 'Source node not found' });
+    }
+    if (!topology.nodes.find(n => n.id === target)) {
+      return res.status(400).json({ error: 'Target node not found' });
+    }
+
+    // Check if link exists
+    if (topology.links.find(l => l.id === id)) {
+      return res.status(400).json({ error: 'Link with this ID already exists' });
+    }
+
+    const newLink = {
+      id,
+      source,
+      target,
+      label: label || '',
+      bwMonitor: bwMonitor || false,
+      latencyThreshold: latencyThreshold || 100,
+      description: description || ''
+    };
+
+    topology.links.push(newLink);
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Link created successfully',
+      link: newLink
+    });
+  } catch (err) {
+    console.error('Error creating topology link:', err);
+    res.status(500).json({ error: 'Failed to create link' });
+  }
+});
+
+// PUT update topology link
+app.put('/api/topology/links/:id', (req, res) => {
+  try {
+    const linkId = req.params.id;
+    const { label, bwMonitor, latencyThreshold, description } = req.body;
+
+    const link = topology.links.find(l => l.id === linkId);
+    if (!link) {
+      return res.status(404).json({ error: 'Link not found' });
+    }
+
+    if (label !== undefined) link.label = label;
+    if (bwMonitor !== undefined) link.bwMonitor = bwMonitor;
+    if (latencyThreshold !== undefined) link.latencyThreshold = latencyThreshold;
+    if (description !== undefined) link.description = description;
+
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Link updated successfully',
+      link: link
+    });
+  } catch (err) {
+    console.error('Error updating topology link:', err);
+    res.status(500).json({ error: 'Failed to update link' });
+  }
+});
+
+// DELETE topology link
+app.delete('/api/topology/links/:id', (req, res) => {
+  try {
+    const linkId = req.params.id;
+    const index = topology.links.findIndex(l => l.id === linkId);
+
+    if (index === -1) {
+      return res.status(404).json({ error: 'Link not found' });
+    }
+
+    topology.links.splice(index, 1);
+    saveTopology();
+
+    res.json({
+      success: true,
+      message: 'Link deleted successfully'
+    });
+  } catch (err) {
+    console.error('Error deleting topology link:', err);
+    res.status(500).json({ error: 'Failed to delete link' });
+  }
+});
+
 // Prometheus Metrics Endpoint
 app.get('/metrics', (req, res) => {
   let metrics = '';
@@ -4452,11 +4810,16 @@ app.use((err, req, res, next) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 
+  // Load topology on startup
+  loadTopology();
+
   // Start ping monitoring immediately
   startPingMonitoring();
 
   // Start website monitoring immediately
   startWebsiteMonitoring();
 });
+
+
 
 

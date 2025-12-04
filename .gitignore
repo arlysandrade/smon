@@ -13,6 +13,9 @@ pids
 # Ping monitoring data
 ping-history.json
 
+# Topology data (user-specific configuration)
+data/topology.json
+
 # Coverage directory used by tools like istanbul
 coverage/
 
