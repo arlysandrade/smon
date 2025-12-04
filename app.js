@@ -2988,6 +2988,169 @@ app.post('/api/devices/:deviceId/select-interfaces', (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// SSE (Server-Sent Events) endpoint for real-time monitoring data
+app.get('/sse/monitoring-data', (req, res) => {
+  const deviceId = req.query.device;
+  const interfaces = req.query.interfaces ? req.query.interfaces.split(',') : [];
+  
+  if (!deviceId || !snmpDevices[deviceId]) {
+    return res.status(400).json({ error: 'Device not found' });
+  }
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  console.log(`[SSE] Client connected for device: ${deviceId}, interfaces: ${interfaces.join(', ')}`);
+  
+  let sseClients = globalThis.sseMonitoringClients || [];
+  globalThis.sseMonitoringClients = sseClients;
+  
+  const clientId = `${deviceId}_${Date.now()}_${Math.random()}`;
+  const client = {
+    id: clientId,
+    deviceId: deviceId,
+    interfaces: interfaces.length > 0 ? interfaces : null, // null = all interfaces
+    res: res,
+    lastSent: {}
+  };
+  
+  sseClients.push(client);
+  
+  // Send initial connection message
+  res.write('data: {"type":"connected","message":"SSE connection established"}\n\n');
+  
+  // Keep connection alive with heartbeat every 30 seconds
+  const heartbeatInterval = setInterval(() => {
+    if (!res.headersSent || res.closed) {
+      clearInterval(heartbeatInterval);
+      return;
+    }
+    res.write(':\n\n'); // SSE comment (heartbeat)
+  }, 30000);
+  
+  // Handle client disconnect
+  req.on('close', () => {
+    console.log(`[SSE] Client disconnected: ${clientId}`);
+    clearInterval(heartbeatInterval);
+    const index = sseClients.findIndex(c => c.id === clientId);
+    if (index > -1) {
+      sseClients.splice(index, 1);
+    }
+  });
+  
+  req.on('error', (err) => {
+    console.error(`[SSE] Client error: ${clientId}`, err.message);
+    clearInterval(heartbeatInterval);
+  });
+});
+
+// Function to broadcast monitoring data to all SSE clients
+async function broadcastMonitoringData() {
+  const sseClients = globalThis.sseMonitoringClients || [];
+  if (sseClients.length === 0) return;
+  
+  try {
+    for (const client of sseClients) {
+      if (client.res.closed || client.res.destroyed) {
+        continue;
+      }
+      
+      // Query latest data for this client's device and interfaces
+      await sendLatestBandwidthData(client);
+    }
+  } catch (err) {
+    console.error('[SSE] Error broadcasting data:', err.message);
+  }
+}
+
+// Function to send latest bandwidth data to a specific SSE client
+async function sendLatestBandwidthData(client) {
+  try {
+    const deviceId = client.deviceId;
+    const interfaces = client.interfaces;
+    const pollingIntervalSeconds = settings.pollingInterval / 1000;
+    
+    let query = `
+      from(bucket: "${settings.influxdb.bucket}")
+      |> range(start: -5m)
+      |> filter(fn: (r) => r._measurement == "snmp_metric")
+      |> filter(fn: (r) => r._field == "value")
+      |> filter(fn: (r) => r.device == "${deviceId}")
+    `;
+    
+    // Filter by interfaces if specified
+    if (interfaces && interfaces.length > 0) {
+      const interfaceFilter = interfaces.map(i => `r.interface == "${i}"`).join(' or ');
+      query += ` |> filter(fn: (r) => ${interfaceFilter})`;
+    }
+    
+    query += `
+      |> map(fn: (r) => ({ r with _value: r._value * 8.0 / 1000000.0 / ${pollingIntervalSeconds}.0 }))
+      |> filter(fn: (r) => r._value >= 0)
+      |> last()
+    `;
+    
+    const data = [];
+    
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        console.warn('[SSE] Query timeout for client:', client.id);
+        resolve();
+      }, 5000);
+      
+      queryApi.queryRows(query, {
+        next(row, tableMeta) {
+          const o = tableMeta.toObject(row);
+          data.push({
+            interface: o.interface,
+            direction: o.direction,
+            value: parseFloat(o._value.toFixed(2)),
+            timestamp: o._time,
+            device: o.device
+          });
+        },
+        error(error) {
+          console.error('[SSE] Query error:', error.message);
+          clearTimeout(timeout);
+          resolve();
+        },
+        complete() {
+          clearTimeout(timeout);
+          
+          // Send data to client if there's new data
+          if (data.length > 0) {
+            try {
+              const message = JSON.stringify({
+                type: 'bandwidth-update',
+                data: data,
+                timestamp: new Date().toISOString()
+              });
+              client.res.write(`data: ${message}\n\n`);
+            } catch (err) {
+              console.error('[SSE] Error sending data:', err.message);
+            }
+          }
+          
+          resolve();
+        }
+      });
+    });
+  } catch (err) {
+    console.error('[SSE] Error in sendLatestBandwidthData:', err.message);
+  }
+}
+
+// Broadcast monitoring data every polling interval
+setInterval(() => {
+  broadcastMonitoringData().catch(err => {
+    console.error('[SSE] Broadcast error:', err.message);
+  });
+}, settings.pollingInterval);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

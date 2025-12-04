@@ -345,6 +345,130 @@
     let selectedInterfaces = [];
     let chartInstances = {}; // Store chart instances for cleanup
     let pollingIntervalMs = <%= pollingIntervalSeconds * 1000 %>; // Auto-refresh interval from settings
+    
+    // SSE (Server-Sent Events) for real-time monitoring data
+    let sseEventSource = null;
+    let sseConnected = false;
+    
+    // Function to connect to SSE stream
+    function connectSSE() {
+      if (sseEventSource) {
+        sseEventSource.close();
+      }
+      
+      if (!currentDevice || selectedInterfaces.length === 0) {
+        console.log('[SSE] Waiting for device and interfaces selection');
+        return;
+      }
+      
+      const interfacesParam = selectedInterfaces.join(',');
+      const sseUrl = `/sse/monitoring-data?device=${currentDevice}&interfaces=${interfacesParam}`;
+      
+      console.log('[SSE] Connecting to:', sseUrl);
+      sseEventSource = new EventSource(sseUrl);
+      
+      // Handle connection established
+      sseEventSource.addEventListener('open', () => {
+        console.log('[SSE] Connection established');
+        sseConnected = true;
+        showToast('Real-time monitoring connected', 'success', 2000);
+      });
+      
+      // Handle incoming messages
+      sseEventSource.addEventListener('message', (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          
+          if (message.type === 'connected') {
+            console.log('[SSE]', message.message);
+          } else if (message.type === 'bandwidth-update') {
+            // Update charts with new data
+            updateChartsRealtime(message.data);
+          }
+        } catch (err) {
+          console.error('[SSE] Error parsing message:', err);
+        }
+      });
+      
+      // Handle errors
+      sseEventSource.addEventListener('error', (event) => {
+        console.error('[SSE] Connection error:', event);
+        sseConnected = false;
+        
+        if (sseEventSource.readyState === EventSource.CLOSED) {
+          console.log('[SSE] Connection closed, will reconnect in 5 seconds...');
+          showToast('Real-time connection lost, reconnecting...', 'warning', 3000);
+          setTimeout(connectSSE, 5000);
+        }
+      });
+    }
+    
+    // Function to update charts with real-time data
+    function updateChartsRealtime(newData) {
+      if (!newData || newData.length === 0) return;
+      
+      // Group data by interface and direction
+      const dataByKey = {};
+      newData.forEach(item => {
+        const key = `chart-${item.interface}-${item.direction}`;
+        if (!dataByKey[key]) {
+          dataByKey[key] = item;
+        }
+      });
+      
+      // Update each relevant chart
+      Object.keys(dataByKey).forEach(key => {
+        const chart = chartInstances[key];
+        if (!chart) return;
+        
+        const dataPoint = dataByKey[key];
+        const timestamp = new Date(dataPoint.timestamp);
+        const newPoint = {
+          x: timestamp,
+          y: dataPoint.value
+        };
+        
+        // Add new data point to chart
+        const dataset = chart.data.datasets[0];
+        dataset.data.push(newPoint);
+        
+        // Keep only last 100 points to avoid memory bloat
+        if (dataset.data.length > 100) {
+          dataset.data.shift();
+        }
+        
+        // Update chart without flickering
+        chart.update('none'); // 'none' = no animation, instant update
+        
+        // Update interface label with current value
+        const interfaceLabel = document.querySelector(`[data-interface="${dataPoint.interface}"][data-direction="${dataPoint.direction}"] .current-value`);
+        if (interfaceLabel) {
+          const value = dataPoint.value.toFixed(2);
+          interfaceLabel.textContent = `${value} Mbps`;
+          
+          // Add color based on traffic level
+          if (dataPoint.value > 1000) {
+            interfaceLabel.className = 'current-value text-red-400 font-bold';
+          } else if (dataPoint.value > 500) {
+            interfaceLabel.className = 'current-value text-yellow-400 font-bold';
+          } else if (dataPoint.value > 100) {
+            interfaceLabel.className = 'current-value text-green-400 font-bold';
+          } else {
+            interfaceLabel.className = 'current-value text-gray-400';
+          }
+        }
+      });
+    }
+    
+    // Function to disconnect SSE
+    function disconnectSSE() {
+      if (sseEventSource) {
+        sseEventSource.close();
+        sseEventSource = null;
+        sseConnected = false;
+        console.log('[SSE] Connection closed');
+      }
+    }
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
@@ -370,6 +494,8 @@
       deviceSelector.addEventListener('change', function() {
         currentDevice = this.value;
         if (currentDevice) {
+          // Disconnect old SSE connection
+          disconnectSSE();
           loadInterfaces(currentDevice);
         }
       });
@@ -1203,7 +1329,14 @@
           console.error('Error loading data:', err);
           // CPU chart is still shown even if interface data fails
         });
+        
+        // Connect SSE for real-time updates
+        setTimeout(() => {
+          connectSSE();
+        }, 1000);
       } else {
+        // Disconnect SSE if no interfaces selected
+        disconnectSSE();
         showToast('Please select interfaces from Device Management first', 'warning');
         container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i><p>Select device and click "Load Data" to display bandwidth charts</p></div>';
       }
@@ -1515,6 +1648,11 @@
         loadChartData();
       }
     }, 60000);
+    
+    // Clean up SSE connection when leaving page
+    window.addEventListener('beforeunload', () => {
+      disconnectSSE();
+    });
   </script>
 </body>
 </html>
