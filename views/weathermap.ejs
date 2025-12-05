@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <%- include('partials/head') %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <style>
+        #cy {
+            width: 100%;
+            height: 100%;
+            min-height: 750px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        #cy:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .link-load {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: auto;
+            z-index: 1000;
+            display: none;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100" x-data="{ sidebarOpen: true }">
+    <%- include('partials/sidebar') %>
+
+    <!-- Main Content -->
+    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
+        <div class="flex flex-col min-h-screen">
+            <%- include('partials/header') %>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Flash Messages -->
+                <%- include('partials/flash') %>
+
+                <!-- Page Title -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <i class="fas fa-globe text-white text-sm"></i>
+                        </div>
+                        Network Weathermap
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">Real-time network link load and traffic visualization</p>
+                </div>
+
+                <!-- Link Load Tooltip -->
+                <div class="link-load absolute" id="linkTooltip"></div>
+
+                <!-- Map Container with Controls and Legend -->
+                <div class="relative">
+                    <!-- Controls -->
+                    <div class="absolute top-4 left-4 z-10 flex gap-2 flex-wrap">
+                        <button onclick="refreshWeathermap()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-sync" id="refresh-icon"></i>
+                            Refresh
+                        </button>
+                        <button onclick="toggleAutoRefresh()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-green-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-clock" id="auto-refresh-icon"></i>
+                            <span id="auto-refresh-text">Auto (5mins)</span>
+                        </button>
+                        <button onclick="showAddNodeModal()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-plus-circle"></i>
+                            Add Node
+                        </button>
+                        <button onclick="showAddLinkModal()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-purple-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-link"></i>
+                            Add Link
+                        </button>
+                        <button onclick="toggleFullscreen()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-expand" id="fullscreen-icon"></i>
+                            Fullscreen
+                        </button>
+                        <button onclick="resetLayout()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02] backdrop-blur-sm">
+                            <i class="fas fa-random"></i>
+                            Reset Layout
+                        </button>
+                    </div>
+
+                    <!-- Load Legend -->
+                    <div class="absolute top-4 right-4 z-10 bg-slate-800/95 border border-slate-700/50 rounded-lg p-3 backdrop-blur-sm shadow-lg">
+                        <h4 class="text-white font-semibold mb-2 text-sm">Link Load</h4>
+                        <div class="space-y-1">
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-1 bg-green-500 rounded mr-2"></div>
+                                <span class="text-gray-300">0-25%</span>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-1 bg-yellow-500 rounded mr-2"></div>
+                                <span class="text-gray-300">25-50%</span>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-1 bg-orange-500 rounded mr-2"></div>
+                                <span class="text-gray-300">50-75%</span>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-1 bg-red-500 rounded mr-2"></div>
+                                <span class="text-gray-300">75-100%</span>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-1 bg-gray-500 rounded mr-2"></div>
+                                <span class="text-gray-300">Unknown</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-600">
+                            <div class="flex items-center text-xs">
+                                <div class="w-4 h-4 border-2 border-yellow-400 rounded mr-2"></div>
+                                <span class="text-gray-300">Manual Node</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cytoscape Canvas -->
+                    <div id="cy" class="rounded-xl border border-slate-700/50 shadow-xl overflow-hidden" style="height: 600px;"></div>
+                </div>
+
+                <!-- Add Node Modal -->
+                <div id="addNodeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 class="text-white text-lg font-semibold mb-4">Add New Node</h3>
+                        <form id="addNodeForm">
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Node ID</label>
+                                <input type="text" id="nodeId" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" placeholder="e.g., router1" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Node Name</label>
+                                <input type="text" id="nodeName" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" placeholder="e.g., Router 1" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">IP Address</label>
+                                <input type="text" id="nodeHost" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" placeholder="e.g., 192.168.1.1">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Vendor</label>
+                                <input type="text" id="nodeVendor" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" placeholder="e.g., Cisco, Mikrotik, Juniper">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Device Type</label>
+                                <select id="nodeType" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                                    <option value="router">Router</option>
+                                    <option value="switch">Switch</option>
+                                    <option value="firewall">Firewall</option>
+                                    <option value="host">Host</option>
+                                    <option value="server">Server</option>
+                                    <option value="cloud">Cloud</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors">
+                                    Add Node
+                                </button>
+                                <button type="button" onclick="hideAddNodeModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Add Link Modal -->
+                <div id="addLinkModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 class="text-white text-lg font-semibold mb-4">Add New Link</h3>
+                        <form id="addLinkForm">
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Source Node</label>
+                                <select id="linkSource" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
+                                    <option value="">Select source node...</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Target Node</label>
+                                <select id="linkTarget" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
+                                    <option value="">Select target node...</option>
+                                </select>
+                            </div>
+                            <div class="mb-4" id="sourceInterfaceContainer" style="display: none;">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Source Interface</label>
+                                <select id="linkSourceInterface" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                                    <option value="">Select source interface...</option>
+                                </select>
+                            </div>
+                            <div class="mb-4" id="targetInterfaceContainer" style="display: none;">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Target Interface</label>
+                                <select id="linkTargetInterface" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                                    <option value="">Select target interface...</option>
+                                </select>
+                            </div>
+                            <div class="mb-4" id="targetInterfaceContainer" style="display: none;">
+                                <label class="block text-gray-300 text-sm font-medium mb-2">Target Interface</label>
+                                <select id="linkTargetInterface" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                                    <option value="">Select target interface...</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
+                                    Add Link
+                                </button>
+                                <button type="button" onclick="hideAddLinkModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let cy;
+        let autoRefreshInterval;
+        let autoRefreshEnabled = true;
+        const refreshInterval = 300000; // 5 minutes
+
+        // Initialize Cytoscape
+        document.addEventListener('DOMContentLoaded', function() {
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-image': (ele) => getNodeIcon(ele.data('type'), ele.data('status')),
+                            'background-fit': 'contain',
+                            'background-clip': 'none',
+                            'background-opacity': 1,
+                            'label': 'data(label)',
+                            'text-valign': 'bottom',
+                            'text-halign': 'center',
+                            'font-size': 10,
+                            'font-weight': 'bold',
+                            'color': '#fff',
+                            'text-background-color': 'rgba(0, 0, 0, 0.7)',
+                            'text-background-opacity': 0.8,
+                            'text-background-padding': '2px',
+                            'text-background-shape': 'roundrectangle',
+                            'width': 48,
+                            'height': 48,
+                            'border-width': (ele) => ele.data('isManual') ? 3 : 2,
+                            'border-color': (ele) => {
+                                if (ele.data('isManual')) return '#fbbf24'; // yellow border for manual nodes
+                                switch(ele.data('status')) {
+                                    case 'up': return '#10b981';      // green
+                                    case 'down': return '#ef4444';     // red
+                                    case 'warning': return '#f59e0b';  // yellow
+                                    default: return '#6b7280';         // gray
+                                }
+                            },
+                            'border-opacity': 0.8,
+                            'shape': 'rectangle',
+                            'cursor': (ele) => ele.data('isManual') ? 'pointer' : 'default'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'line-color': '#22c55e', // green for manual links
+                            'target-arrow-color': '#22c55e',
+                            'target-arrow-shape': 'triangle',
+                            'width': 3,
+                            'curve-style': 'bezier',
+                            'label': (ele) => formatLoadLabel(ele.data('bandwidth')),
+                            'font-size': 10,
+                            'color': '#fff',
+                            'text-background-color': '#1e293b',
+                            'text-background-padding': '3px',
+                            'text-background-opacity': 0.9,
+                            'edge-text-rotation': 'autorotate'
+                        }
+                    }
+                ]
+            });
+
+            // Event handlers
+            cy.on('tap', 'edge', showLinkDetails);
+            cy.on('mouseout', 'edge', function(event) {
+                // Delay hiding to allow mouse to move to tooltip
+                hideTooltipTimeout = setTimeout(function() {
+                    if (!tooltipVisible) {
+                        hideLinkDetails();
+                    }
+                }, 200); // Increased delay to 200ms
+            });
+
+            // Add node drag event handlers to save positions
+            cy.on('dragfree', 'node', function(event) {
+                // Save positions when node dragging stops
+                saveNodePositions();
+            });
+
+            // Add right-click handler for manual nodes (delete)
+            cy.on('cxttap', 'node', function(event) {
+                const node = event.target;
+                if (node.data('isManual')) {
+                    deleteManualNode(node.id());
+                }
+            });
+
+            // Add mouse events to tooltip to prevent hiding when hovering over it
+            const tooltip = document.getElementById('linkTooltip');
+            tooltip.addEventListener('mouseenter', function() {
+                tooltipVisible = true;
+                // Cancel any pending hide timeout
+                if (hideTooltipTimeout) {
+                    clearTimeout(hideTooltipTimeout);
+                    hideTooltipTimeout = null;
+                }
+            });
+            tooltip.addEventListener('mouseleave', function() {
+                tooltipVisible = false;
+                // Hide tooltip after a short delay
+                hideTooltipTimeout = setTimeout(function() {
+                    hideLinkDetails();
+                }, 100);
+            });
+
+            // Load initial data
+            loadWeathermapData();
+
+            // Start auto refresh
+            startAutoRefresh();
+        });
+
+        function getNodeColor(status) {
+            switch(status) {
+                case 'up': return '#10b981';      // green
+                case 'down': return '#ef4444';     // red
+                case 'warning': return '#f59e0b';  // yellow
+                default: return '#6b7280';         // gray
+            }
+        }
+
+        function getNodeIcon(type, status) {
+            // Map device types to appropriate icons
+            const typeMap = {
+                'router': 'Router',
+                'switch': 'Switch',
+                'firewall': 'Firewall',
+                'host': 'Host',
+                'server': 'HPMini',
+                'workgroup-switch': 'WorkgroupSwitch',
+                'cloud': 'Cloud-Filled',
+                'pad': 'PAD'
+            };
+
+            // Get base icon name
+            const baseIcon = typeMap[type] || typeMap['router']; // default to router
+
+            // For status-based icons, try to use status variants if available
+            if (status === 'up' || status === 'down') {
+                const statusIcon = `${baseIcon.toLowerCase()}_${status}.gif`;
+                // Check if the status icon exists (we'll assume it does for common types)
+                if (['router', 'switch'].includes(type)) {
+                    return `/images/${statusIcon}`;
+                }
+            }
+
+            // Return the base PNG icon
+            return `/images/${baseIcon}.png`;
+        }
+
+        function getLinkColor(load) {
+            if (load === null || load === undefined) return '#6b7280'; // gray
+
+            const util = parseFloat(load);
+            if (util >= 75) return '#ef4444';      // red - high load
+            if (util >= 50) return '#f97316';      // orange - medium-high
+            if (util >= 25) return '#eab308';      // yellow - medium
+            return '#22c55e';                      // green - low load
+        }
+
+        async function getInterfaceBandwidth(deviceId, interfaceName) {
+            try {
+                // Fetch RX data
+                const rxResponse = await fetch(`/api/data?device=${deviceId}&interface=${interfaceName}&direction=rx&metric=bandwidth&timeRange=-10m`);
+                const rxData = rxResponse.ok ? await rxResponse.json() : [];
+                
+                // Fetch TX data
+                const txResponse = await fetch(`/api/data?device=${deviceId}&interface=${interfaceName}&direction=tx&metric=bandwidth&timeRange=-10m`);
+                const txData = txResponse.ok ? await txResponse.json() : [];
+                
+                // Get the latest values (data is already in Mbps from the API)
+                const rxMbps = rxData.length > 0 ? rxData[rxData.length - 1].value : 0;
+                const txMbps = txData.length > 0 ? txData[txData.length - 1].value : 0;
+                
+                return { rxMbps, txMbps };
+            } catch (error) {
+                console.error(`Error fetching bandwidth for ${deviceId}:${interfaceName}:`, error);
+            }
+            return { rxMbps: 0, txMbps: 0 };
+        }
+
+        function formatBandwidth(sourceData, targetData) {
+            const sourceRx = (sourceData && sourceData.rxMbps !== undefined) ? sourceData.rxMbps.toFixed(1) : '0.0';
+            const sourceTx = (sourceData && sourceData.txMbps !== undefined) ? sourceData.txMbps.toFixed(1) : '0.0';
+            const targetRx = (targetData && targetData.rxMbps !== undefined) ? targetData.rxMbps.toFixed(1) : '0.0';
+            const targetTx = (targetData && targetData.txMbps !== undefined) ? targetData.txMbps.toFixed(1) : '0.0';
+            
+            return `${sourceRx}/${sourceTx} ↔ ${targetRx}/${targetTx} Mbps`;
+        }
+
+        function formatLoadLabel(bandwidth, speed) {
+            if (!bandwidth) return '';
+            return bandwidth;
+        }
+
+        async function loadWeathermapData() {
+            try {
+                // Show loading
+                document.getElementById('refresh-icon').classList.add('fa-spin');
+
+                // Fetch topology data (devices only, links are manual only)
+                const response = await fetch('/api/weathermap/links');
+                const data = await response.json();
+                const devices = data.devices || [];
+                // Note: links from API are ignored, only manual links are used
+
+                // Populate snmpDevices object for use in modals
+                snmpDevices = {};
+                devices.forEach(device => {
+                    snmpDevices[device.id] = device;
+                });
+
+                // Clear existing elements
+                cy.elements().remove();
+
+                // Add nodes (devices from topology + manual nodes)
+                const nodes = devices.map(device => {
+                    // Map vendor to device type for icon selection
+                    let deviceType = 'router'; // default
+                    if (device.vendor) {
+                        const vendor = device.vendor.toLowerCase();
+                        if (vendor.includes('cisco') || vendor.includes('juniper') || vendor.includes('huawei')) {
+                            deviceType = 'router';
+                        } else if (vendor.includes('mikrotik')) {
+                            deviceType = 'router'; // MikroTik can be router or switch
+                        } else if (vendor.includes('switch') || vendor.includes('workgroup')) {
+                            deviceType = 'switch';
+                        } else if (vendor.includes('firewall') || vendor.includes('palo') || vendor.includes('checkpoint')) {
+                            deviceType = 'firewall';
+                        }
+                    }
+
+                    // Get saved position or use default
+                    const savedPos = nodePositions[device.id];
+                    
+                    return {
+                        data: {
+                            id: device.id,
+                            label: device.name,
+                            status: device.status || 'unknown',
+                            host: device.host,
+                            vendor: device.vendor || 'unknown',
+                            type: deviceType,
+                            hasSnmpData: device.hasSnmpData,
+                            isManual: false
+                        },
+                        position: savedPos || { x: Math.random() * 500, y: Math.random() * 500 }
+                    };
+                });
+
+                // Add manual nodes
+                manualNodes.forEach(node => {
+                    // Get saved position or use default
+                    const savedPos = nodePositions[node.id];
+                    
+                    nodes.push({
+                        data: {
+                            id: node.id,
+                            label: node.name,
+                            status: 'unknown',
+                            host: node.host,
+                            vendor: node.vendor || 'unknown',
+                            type: node.type || 'router', // Use stored type or default to router
+                            hasSnmpData: false,
+                            isManual: true
+                        },
+                        position: savedPos || { x: Math.random() * 500, y: Math.random() * 500 }
+                    });
+                });
+
+                // Add manual links only
+                const edgePromises = manualLinks.map(async (link) => {
+                    const sourceBandwidth = await getInterfaceBandwidth(link.sourceDevice, link.sourceInterface);
+                    const targetBandwidth = await getInterfaceBandwidth(link.targetDevice, link.targetInterface);
+                    
+                    const bandwidthText = formatBandwidth(sourceBandwidth, targetBandwidth);
+                    
+                    return {
+                        data: {
+                            id: link.id,
+                            source: link.sourceDevice,
+                            target: link.targetDevice,
+                            sourceInterface: link.sourceInterface,
+                            targetInterface: link.targetInterface,
+                            bandwidth: bandwidthText,
+                            direction: link.direction,
+                            description: link.description,
+                            isManual: true
+                        }
+                    };
+                });
+                
+                const edges = await Promise.all(edgePromises);
+
+                // Add elements to graph
+                cy.add(nodes.concat(edges));
+
+                // Apply layout only for nodes without saved positions
+                const nodesWithoutPosition = cy.nodes().filter(node => !nodePositions[node.id()]);
+                if (nodesWithoutPosition.length > 0) {
+                    // Apply layout only to new nodes
+                    nodesWithoutPosition.layout({
+                        name: 'cose',
+                        // COSE layout options for better network visualization
+                        nodeRepulsion: 4000,
+                        idealEdgeLength: 100,
+                        edgeElasticity: 100,
+                        nestingFactor: 5,
+                        gravity: 80,
+                        numIter: 1000,
+                        initialTemp: 200,
+                        coolingFactor: 0.99,
+                        minTemp: 1.0
+                    }).run();
+                }
+
+                // Save positions after layout is complete
+                setTimeout(() => {
+                    saveNodePositions();
+                }, 1500); // Wait for layout to complete
+
+            } catch (error) {
+                console.error('Error loading weathermap data:', error);
+            } finally {
+                document.getElementById('refresh-icon').classList.remove('fa-spin');
+                dataLoaded = true; // Mark data as loaded
+            }
+        }
+
+        function showLinkDetails(event) {
+            // Clear any pending hide timeout
+            if (hideTooltipTimeout) {
+                clearTimeout(hideTooltipTimeout);
+                hideTooltipTimeout = null;
+            }
+
+            const edge = event.target;
+            const data = edge.data();
+
+            const tooltip = document.getElementById('linkTooltip');
+            const bandwidth = data.bandwidth || 'Loading...';
+
+            let deleteButton = '';
+            if (data.isManual) {
+                deleteButton = `<button onclick="deleteManualLink('${data.id}')" class="mt-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded">Delete Link</button>`;
+            }
+
+            tooltip.innerHTML = `
+                <div class="font-semibold">${data.sourceInterface} ↔ ${data.targetInterface}</div>
+                <div>Bandwidth: ${bandwidth}</div>
+                <div>Direction: ${data.direction || 'bidirectional'}</div>
+                <div class="text-xs text-gray-400 mt-1">${data.description || ''}</div>
+                ${deleteButton}
+            `;
+
+            // Position tooltip near mouse, keeping it within canvas bounds
+            const canvas = document.getElementById('cy');
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            let left = canvasRect.left + event.renderedPosition.x + 10;
+            let top = canvasRect.top + event.renderedPosition.y - 10;
+            
+            // Adjust position to keep tooltip within viewport bounds
+            const tooltipWidth = 250; // max-width from CSS
+            const tooltipHeight = 120; // approximate height
+            
+            if (left + tooltipWidth > window.innerWidth) {
+                left = canvasRect.left + event.renderedPosition.x - tooltipWidth - 10;
+            }
+            if (top + tooltipHeight > window.innerHeight) {
+                top = canvasRect.top + event.renderedPosition.y - tooltipHeight - 10;
+            }
+            if (left < canvasRect.left) left = canvasRect.left + 10;
+            if (top < canvasRect.top) top = canvasRect.top + 10;
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.display = 'block';
+            tooltipVisible = false; // Reset flag when showing new tooltip
+        }
+
+        function hideLinkDetails() {
+            const tooltip = document.getElementById('linkTooltip');
+            tooltip.style.display = 'none';
+            tooltipVisible = false;
+            // Clear any pending timeout
+            if (hideTooltipTimeout) {
+                clearTimeout(hideTooltipTimeout);
+                hideTooltipTimeout = null;
+            }
+        }
+
+        function refreshWeathermap() {
+            loadWeathermapData();
+        }
+
+        function resetLayout() {
+            // Clear saved positions
+            localStorage.removeItem('nodePositions');
+            nodePositions = {};
+            
+            // Show confirmation and reload
+            if (confirm('Reset layout to automatic positioning? This will clear all manually arranged node positions.')) {
+                loadWeathermapData();
+            }
+        }
+
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+
+            const icon = document.getElementById('auto-refresh-icon');
+            const text = document.getElementById('auto-refresh-text');
+
+            if (autoRefreshEnabled) {
+                startAutoRefresh();
+                icon.className = 'fas fa-clock';
+                text.textContent = 'Auto (5mins)';
+            } else {
+                stopAutoRefresh();
+                icon.className = 'fas fa-clock text-gray-400';
+                text.textContent = 'Manual';
+            }
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                if (autoRefreshEnabled) {
+                    loadWeathermapData();
+                }
+            }, refreshInterval);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // Manual topology data
+        let manualNodes = JSON.parse(localStorage.getItem('manualNodes') || '[]');
+        let manualLinks = JSON.parse(localStorage.getItem('manualLinks') || '[]');
+        let snmpDevices = {}; // Store SNMP devices keyed by device ID
+        let dataLoaded = false; // Flag to track if initial data is loaded
+        let tooltipVisible = false; // Flag to track tooltip visibility
+        let hideTooltipTimeout; // Timeout for hiding tooltip
+        let nodePositions = JSON.parse(localStorage.getItem('nodePositions') || '{}'); // Store node positions
+
+        function saveNodePositions() {
+            const positions = {};
+            cy.nodes().forEach(node => {
+                const pos = node.position();
+                positions[node.id()] = {
+                    x: pos.x,
+                    y: pos.y
+                };
+            });
+            localStorage.setItem('nodePositions', JSON.stringify(positions));
+            nodePositions = positions;
+        }
+
+        function saveManualTopology() {
+            localStorage.setItem('manualNodes', JSON.stringify(manualNodes));
+            localStorage.setItem('manualLinks', JSON.stringify(manualLinks));
+            saveNodePositions();
+        }
+
+        function deleteManualLink(linkId) {
+            // Remove from manualLinks array
+            manualLinks = manualLinks.filter(link => link.id !== linkId);
+            saveManualTopology();
+            
+            // Hide tooltip
+            hideLinkDetails();
+            
+            // Reload weathermap to reflect changes
+            loadWeathermapData();
+        }
+
+        function deleteManualNode(nodeId) {
+            if (!confirm('Delete this manual node and all its connected links?')) return;
+            
+            // Remove from manualNodes array
+            manualNodes = manualNodes.filter(node => node.id !== nodeId);
+            
+            // Remove connected links
+            manualLinks = manualLinks.filter(link => link.source !== nodeId && link.target !== nodeId);
+            
+            saveManualTopology();
+            
+            // Reload weathermap to reflect changes
+            loadWeathermapData();
+        }
+
+        function showAddNodeModal() {
+            document.getElementById('addNodeModal').classList.remove('hidden');
+        }
+
+        function hideAddNodeModal() {
+            document.getElementById('addNodeModal').classList.add('hidden');
+            document.getElementById('addNodeForm').reset();
+        }
+
+        function hideAddLinkModal() {
+            document.getElementById('addLinkModal').classList.add('hidden');
+            document.getElementById('addLinkForm').reset();
+            // Hide interface fields and reset their state
+            const sourceInterfaceContainer = document.getElementById('sourceInterfaceContainer');
+            const targetInterfaceContainer = document.getElementById('targetInterfaceContainer');
+            const sourceInterfaceSelect = document.getElementById('linkSourceInterface');
+            const targetInterfaceSelect = document.getElementById('linkTargetInterface');
+            sourceInterfaceContainer.style.display = 'none';
+            targetInterfaceContainer.style.display = 'none';
+            sourceInterfaceSelect.required = false;
+            targetInterfaceSelect.required = false;
+        }
+
+        async function showAddLinkModal() {
+            // Ensure data is loaded before showing modal
+            if (!dataLoaded) {
+                await loadWeathermapData();
+            }
+            
+            // Populate node dropdowns
+            const sourceSelect = document.getElementById('linkSource');
+            const targetSelect = document.getElementById('linkTarget');
+            
+            // Clear existing options
+            sourceSelect.innerHTML = '<option value="">Select source node...</option>';
+            targetSelect.innerHTML = '<option value="">Select target node...</option>';
+            
+            // Add SNMP devices
+            for (const [deviceId, device] of Object.entries(snmpDevices || {})) {
+                const option = document.createElement('option');
+                option.value = deviceId;
+                option.textContent = `${device.name} (${deviceId})`;
+                sourceSelect.appendChild(option.cloneNode(true));
+                targetSelect.appendChild(option);
+            }
+            
+            // Add manual nodes
+            manualNodes.forEach(node => {
+                const option = document.createElement('option');
+                option.value = node.id;
+                option.textContent = `${node.name} (${node.id}) - Manual`;
+                sourceSelect.appendChild(option.cloneNode(true));
+                targetSelect.appendChild(option);
+            });
+            
+            document.getElementById('addLinkModal').classList.remove('hidden');
+        }
+
+        // Handle source device selection to populate interfaces
+        document.getElementById('linkSource').addEventListener('change', async function(e) {
+            await updateInterfaceFieldsVisibility();
+        });
+
+        // Handle target device selection to show/hide interface fields
+        document.getElementById('linkTarget').addEventListener('change', async function(e) {
+            await updateInterfaceFieldsVisibility();
+        });
+
+        // Function to update interface fields visibility based on source and target selection
+        async function updateInterfaceFieldsVisibility() {
+            const sourceId = document.getElementById('linkSource').value;
+            const targetId = document.getElementById('linkTarget').value;
+            const sourceInterfaceContainer = document.getElementById('sourceInterfaceContainer');
+            const targetInterfaceContainer = document.getElementById('targetInterfaceContainer');
+            
+            if (!sourceId || !targetId) {
+                // Hide both if either is not selected
+                sourceInterfaceContainer.style.display = 'none';
+                targetInterfaceContainer.style.display = 'none';
+                return;
+            }
+            
+            // Check if both nodes are manual
+            const isSourceManual = manualNodes.some(node => node.id === sourceId);
+            const isTargetManual = manualNodes.some(node => node.id === targetId);
+            
+            if (isSourceManual && isTargetManual) {
+                // Both are manual nodes - hide both interface fields
+                sourceInterfaceContainer.style.display = 'none';
+                targetInterfaceContainer.style.display = 'none';
+                return;
+            }
+            
+            // At least one is SNMP device - show source interface
+            sourceInterfaceContainer.style.display = 'block';
+            await populateInterfaceDropdown('linkSourceInterface', sourceId);
+            
+            // Check target device for target interface
+            try {
+                const response = await fetch(`/api/devices/${targetId}/interfaces`);
+                if (response.ok) {
+                    const interfaces = await response.json();
+                    if (interfaces && interfaces.length > 0) {
+                        // Target has SNMP interfaces
+                        targetInterfaceContainer.style.display = 'block';
+                        await populateInterfaceDropdown('linkTargetInterface', targetId);
+                    } else {
+                        // Target is manual or has no interfaces
+                        targetInterfaceContainer.style.display = 'none';
+                    }
+                } else {
+                    // Target has no SNMP data
+                    targetInterfaceContainer.style.display = 'none';
+                }
+            } catch (error) {
+                console.error(`Error checking interfaces for ${targetId}:`, error);
+                targetInterfaceContainer.style.display = 'none';
+            }
+        }
+
+        // Handle target device selection to populate interfaces and show/hide target interface field
+        document.getElementById('linkTarget').addEventListener('change', async function(e) {
+            const deviceId = e.target.value;
+            const targetInterfaceContainer = document.getElementById('targetInterfaceContainer');
+            const targetInterfaceSelect = document.getElementById('linkTargetInterface');
+            
+            if (!deviceId) {
+                targetInterfaceContainer.style.display = 'none';
+                targetInterfaceSelect.required = false;
+                return;
+            }
+            
+            // Check if target is a manual node
+            const isManualNode = manualNodes.some(node => node.id === deviceId);
+            
+            if (isManualNode) {
+                // Hide target interface for manual nodes
+                targetInterfaceContainer.style.display = 'none';
+                targetInterfaceSelect.required = false;
+                targetInterfaceSelect.value = '';
+            } else {
+                // Show target interface for SNMP devices
+                targetInterfaceContainer.style.display = 'block';
+                targetInterfaceSelect.required = true;
+                await populateInterfaceDropdown('linkTargetInterface', deviceId);
+            }
+        });
+
+        async function populateInterfaceDropdown(dropdownId, deviceId) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '<option value="">Select interface...</option>';
+
+            if (!deviceId) return;
+
+            try {
+                const response = await fetch(`/api/devices/${deviceId}/interfaces`);
+                if (response.ok) {
+                    const interfaces = await response.json();
+                    interfaces.forEach(iface => {
+                        const option = document.createElement('option');
+                        option.value = iface.name;
+                        option.textContent = iface.name;
+                        dropdown.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error(`Error fetching interfaces for ${deviceId}:`, error);
+            }
+        }
+
+        // Handle add node form submission
+        document.getElementById('addNodeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nodeId = document.getElementById('nodeId')?.value?.trim();
+            const nodeName = document.getElementById('nodeName')?.value?.trim();
+            const nodeHost = document.getElementById('nodeHost')?.value?.trim();
+            const nodeVendor = document.getElementById('nodeVendor')?.value || '';
+            const nodeType = document.getElementById('nodeType')?.value;
+            
+            if (!nodeId || !nodeName) {
+                alert('Node ID and Name are required');
+                return;
+            }
+            
+            // Check if node ID already exists
+            if (manualNodes.some(n => n.id === nodeId) || (snmpDevices && snmpDevices[nodeId])) {
+                alert('Node ID already exists');
+                return;
+            }
+            
+            // Add new node
+            const newNode = {
+                id: nodeId,
+                name: nodeName,
+                host: nodeHost || null,
+                vendor: nodeVendor,
+                type: nodeType,
+                isManual: true
+            };
+            
+            manualNodes.push(newNode);
+            saveManualTopology();
+            
+            // Reload data to show the new node
+            loadWeathermapData();
+            
+            hideAddNodeModal();
+        });
+
+        // Handle add link form submission
+        document.getElementById('addLinkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const sourceId = document.getElementById('linkSource')?.value;
+            const targetId = document.getElementById('linkTarget')?.value;
+            const sourceInterfaceContainer = document.getElementById('sourceInterfaceContainer');
+            const targetInterfaceContainer = document.getElementById('targetInterfaceContainer');
+            
+            // Determine interface values based on visibility
+            let sourceInterface, targetInterface;
+            if (sourceInterfaceContainer.style.display === 'none') {
+                sourceInterface = 'N/A'; // Manual node
+            } else {
+                sourceInterface = document.getElementById('linkSourceInterface')?.value;
+            }
+            
+            if (targetInterfaceContainer.style.display === 'none') {
+                targetInterface = 'N/A'; // Manual node
+            } else {
+                targetInterface = document.getElementById('linkTargetInterface')?.value;
+            }
+            
+            if (!sourceId || !targetId) {
+                alert('Source and Target are required');
+                return;
+            }
+            
+            // Check if source interface is required and provided
+            if (sourceInterfaceContainer.style.display !== 'none' && !sourceInterface) {
+                alert('Source Interface is required for this link');
+                return;
+            }
+            
+            // Check if target interface is required and provided
+            if (targetInterfaceContainer.style.display !== 'none' && !targetInterface) {
+                alert('Target Interface is required for this link');
+                return;
+            }
+            
+            if (sourceId === targetId) {
+                alert('Source and target cannot be the same');
+                return;
+            }
+            
+            // Check if link already exists
+            const linkExists = manualLinks.some(l => 
+                (l.sourceDevice === sourceId && l.targetDevice === targetId && l.sourceInterface === sourceInterface) ||
+                (l.sourceDevice === targetId && l.targetDevice === sourceId && l.sourceInterface === sourceInterface)
+            );
+            
+            if (linkExists) {
+                alert('Link between these nodes with these interfaces already exists');
+                return;
+            }
+            
+            // Add new link
+            const newLink = {
+                id: `${sourceId}_${targetId}_${sourceInterface}`,
+                sourceDevice: sourceId,
+                targetDevice: targetId,
+                sourceInterface: sourceInterface,
+                targetInterface: targetInterface,
+                direction: 'bidirectional',
+                description: `${sourceInterface} → ${targetId} (Manual)`,
+                isManual: true
+            };
+            
+            manualLinks.push(newLink);
+            saveManualTopology();
+            
+            // Reload data to show the new link
+            loadWeathermapData();
+            
+            hideAddLinkModal();
+        });
+
+        function toggleFullscreen() {
+            const elem = document.getElementById('cy');
+            const icon = document.getElementById('fullscreen-icon');
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    icon.className = 'fas fa-compress';
+                    // Resize Cytoscape to fit fullscreen
+                    cy.resize();
+                    cy.fit();
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    icon.className = 'fas fa-expand';
+                    // Resize Cytoscape back to normal
+                    setTimeout(() => {
+                        cy.resize();
+                        cy.fit();
+                    }, 100);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
