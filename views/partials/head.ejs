@@ -1,0 +1,33 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3b82f6">
+<meta name="description" content="Advanced SNMP Network Monitoring Dashboard">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SMon">
+<title><%= title %> - SMon</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+
+    html { scroll-behavior: smooth; }
+    * { scrollbar-width: thin; scrollbar-color: #475569 #1e293b; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-track { background: #1e293b; }
+    *::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    *::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+<% if (typeof customStyles !== 'undefined' && customStyles) { %>
+    <%- customStyles %>
+<% } %>

@@ -1,0 +1,332 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    IMPLEMENTATION ROADMAP                                     ║
+║                   Phase 2A: Layout Revamp + Auto-Discovery                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+🎯 GOAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Revamp GRAPHTS UI to match USMAN-DISP architecture + Implement Automatic 
+Topology Discovery via ARP/SNMP/Traceroute
+
+Timeline: 2-3 weeks (concurrent with Phase 2B)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PHASE 2A.1: SETUP & INFRASTRUCTURE (Days 1-2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tasks:
+  [ ] 1. Create directory structure
+      └─ views/partials/
+      └─ views/layouts/
+      └─ views/dashboard/
+      └─ views/monitoring/
+      └─ views/ping/
+      └─ views/devices/
+      └─ views/websites/
+      └─ views/domains/
+      └─ views/history/
+      └─ views/settings/
+      └─ views/about/
+      └─ views/map/
+      └─ views/auth/
+      └─ views/errors/
+
+  [ ] 2. Add Alpine.js + Lucide Icons to package.json or CDN
+      • Alpine.js 3.x CDN link
+      • Lucide Icons CDN link
+
+  [ ] 3. Create partials/head.ejs
+      • Meta tags
+      • CSS links (Tailwind)
+      • Script tags (Alpine, Lucide, custom JS)
+
+  [ ] 4. Create partials/sidebar.ejs
+      • Alpine.js x-data for state
+      • Collapsible navigation
+      • Nested menus for Monitoring, Devices, Topology
+      • Lucide Icons for all menu items
+
+  [ ] 5. Create partials/header.ejs
+      • Dynamic page title + icon
+      • Breadcrumb (optional)
+      • Current time display
+
+  [ ] 6. Create partials/footer.ejs
+      • Company info
+      • Version
+      • Links
+
+  [ ] 7. Create partials/flash.ejs
+      • Alert/notification display
+      • Success, error, warning, info states
+
+  [ ] 8. Create layouts/main.ejs
+      • Master layout template
+      • Include all partials
+      • Main content area
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PHASE 2A.2: PAGE MIGRATION (Days 3-5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Migration Strategy:
+  1. Create new pages under feature folders
+  2. Use layout includes + only add content
+  3. Replace Font Awesome → Lucide icons
+  4. Test each page before moving to next
+
+Tasks:
+  [ ] 1. Dashboard (views/dashboard/index.ejs)
+      • Use layout/main.ejs
+      • Migrate content from views/index.ejs
+      • Replace Font Awesome with Lucide
+      • Test layout + sidebar interaction
+
+  [ ] 2. Monitoring (views/monitoring/index.ejs)
+      • Migrate from views/monitoring.ejs
+      • Use new layout system
+      • Test with monitoring data
+
+  [ ] 3. Ping (views/ping/index.ejs)
+      • Migrate from views/ping.ejs
+      • Icon replacements
+
+  [ ] 4. Map (views/map/index.ejs)
+      • Migrate from views/map.ejs
+      • Cytoscape.js integration (keep as-is)
+      • Test topology visualization
+
+  [ ] 5. Migrate remaining pages:
+      • Devices, Websites, Domains, History
+      • Settings, About, Auth/Login
+      • Error pages (404, 500)
+
+  [ ] 6. Update app.js routes
+      • Change render paths to new locations
+      • Test all routes work correctly
+
+  [ ] 7. Test mobile responsiveness
+      • Sidebar collapse on mobile
+      • Menu dropdowns
+      • Responsive grid layouts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PHASE 2A.3: ENHANCEMENTS (Days 6-7)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tasks:
+  [ ] 1. Nested menu dropdowns
+      • Monitoring → Online Users, Sessions, Auth Logs, Stats
+      • Topology → Map, Discovery, Alerts, Reports
+      • Devices → Device List, Groups, Alerts
+
+  [ ] 2. Active state detection
+      • Highlight current page in sidebar
+      • Highlight parent menu if in submenu
+
+  [ ] 3. Icon consistency audit
+      • Replace all Font Awesome with Lucide
+      • Ensure consistent sizing (h-5 w-5, etc)
+      • Test all icon renders correctly
+
+  [ ] 4. Theme consistency
+      • Apply blue gradient theme throughout
+      • Card styling: gradient backgrounds
+      • Button styling: consistent hover states
+      • Typography: consistent font sizes
+
+  [ ] 5. Performance optimization
+      • Minify CSS/JS
+      • Lazy load images
+      • Cache partials
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PHASE 2B: AUTO-DISCOVERY IMPLEMENTATION (Parallel, Days 5-10)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tasks:
+  [ ] 1. ARP Scanning Module
+      • Install: npm install arp-scan (or native solution)
+      • Create: lib/discovery/arp-scanner.js
+      • Scan ARP tables for devices on network
+      • Extract: MAC, IP, Hostname
+      • Store discovered devices
+
+  [ ] 2. SNMP Neighbor Detection
+      • Install: npm install snmp
+      • Create: lib/discovery/snmp-detector.js
+      • Query CDP (Cisco Discovery Protocol) neighbors
+      • Query LLDP (Link Layer Discovery Protocol)
+      • Detect connections between network devices
+
+  [ ] 3. Traceroute Path Discovery
+      • Install: npm install tracert (or native)
+      • Create: lib/discovery/traceroute-discovery.js
+      • Trace paths between nodes
+      • Map intermediate hops
+      • Visualize paths on topology
+
+  [ ] 4. Automatic Node Creation
+      • Create: lib/discovery/topology-generator.js
+      • Convert discovered devices → topology nodes
+      • Auto-assign positions based on hierarchy
+      • Add to data/topology.json
+      • Add to ping targets automatically
+
+  [ ] 5. Discovery API Endpoints
+      • POST /api/discovery/scan - Start ARP scan
+      • GET /api/discovery/status - Check scan progress
+      • GET /api/discovery/results - Get discovered devices
+      • POST /api/discovery/apply - Apply discovered topology
+      • POST /api/discovery/clear - Clear discovered items
+
+  [ ] 6. Discovery UI Page
+      • Create: views/discovery/index.ejs
+      • Show scan progress
+      • Display discovered devices in table
+      • Allow filtering/selection
+      • Apply/Reject discovered topology
+
+  [ ] 7. Topology History/Snapshots
+      • Store topology snapshots with timestamps
+      • Compare snapshots (what changed?)
+      • Visualize topology history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 PHASE 2C: ADVANCED FEATURES (Follow-up, Days 11+)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tasks (Priority Order):
+  [ ] 1. Hierarchical Topology Layout
+      [ ] Implement layer-by-layer positioning
+      [ ] Smart node distribution
+      [ ] Automatic alignment
+
+  [ ] 2. Advanced Filtering & Search
+      [ ] Filter by device type
+      [ ] Filter by status
+      [ ] Search by name/IP
+      [ ] Multi-select actions
+
+  [ ] 3. Bandwidth Overlay
+      [ ] Display bandwidth usage on links
+      [ ] Color-code by utilization
+      [ ] Real-time bandwidth updates
+
+  [ ] 4. Custom Alerts per Link
+      [ ] Set thresholds for links
+      [ ] Alert when thresholds exceeded
+      [ ] Notification system
+
+  [ ] 5. Multi-site Topology Views
+      [ ] Group devices by site
+      [ ] Separate views per site
+      [ ] Inter-site link visualization
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DEPENDENCIES TO INSTALL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Layout/UI:
+  └─ (Already have: Tailwind CSS CDN)
+  └─ Alpine.js 3.x (CDN)
+  └─ Lucide Icons (CDN)
+
+Discovery:
+  └─ npm install arp-scan       # ARP table scanning
+  └─ npm install snmp           # SNMP queries
+  └─ npm install tracert        # Traceroute
+
+Optional:
+  └─ npm install chart.js       # For bandwidth graphs
+  └─ npm install socket.io      # Real-time updates
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📈 SUCCESS CRITERIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 2A.1 (Setup):
+  ✓ All partial files created
+  ✓ Layout template working
+  ✓ Alpine.js + Lucide loaded without errors
+  ✓ 1 page (Dashboard) using new layout
+
+Phase 2A.2 (Migration):
+  ✓ All 11 pages migrated to new structure
+  ✓ All routes working correctly
+  ✓ Sidebar collapsible on all pages
+  ✓ No layout/styling issues on any page
+  ✓ Mobile responsive tested
+
+Phase 2A.3 (Enhancements):
+  ✓ Nested menus working
+  ✓ Active states highlighting correctly
+  ✓ All icons consistently using Lucide
+  ✓ Blue gradient theme applied throughout
+  ✓ Performance metrics improved (smaller files)
+
+Phase 2B (Auto-Discovery):
+  ✓ ARP scan discovers devices on network
+  ✓ SNMP detects neighbor relationships
+  ✓ Traceroute maps paths between nodes
+  ✓ Discovered devices can be applied to topology
+  ✓ Discovery API endpoints working
+  ✓ Discovery UI functional
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  MIGRATION STRATEGY NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. BACKWARDS COMPATIBILITY:
+   • Keep old views/ .ejs files as backup during migration
+   • Test new routes thoroughly before deleting old files
+   • Update git .gitignore if needed
+
+2. TESTING APPROACH:
+   • Test 1 page at a time (dashboard first)
+   • Test all routes: /dashboard, /monitoring, /map, etc
+   • Test sidebar toggle on different screen sizes
+   • Test menu dropdowns open/close
+   • Test active state highlighting
+
+3. ROLLBACK PLAN:
+   • Keep old app.js routes commented out
+   • Can switch back if issues arise
+   • Test thoroughly before full commit
+
+4. PARALLEL WORK:
+   • Layouts (Phase 2A.1) can happen while doing auto-discovery research
+   • Migration (Phase 2A.2) can happen in parallel with discovery coding
+   • Allows faster overall timeline
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. CONFIRM REQUIREMENTS:
+   [ ] Approve folder structure
+   [ ] Confirm color scheme (blue gradient)
+   [ ] Confirm which discovery methods to prioritize
+   [ ] Confirm network subnets/devices to scan
+
+2. START PHASE 2A.1:
+   [ ] Create directory structure
+   [ ] Create partials (head, sidebar, header, footer, flash)
+   [ ] Create layouts/main.ejs
+   [ ] Test with dashboard page
+
+3. PARALLEL START AUTO-DISCOVERY:
+   [ ] Research discovery libraries
+   [ ] Determine network configuration
+   [ ] Plan discovery workflow
+
+Ready to proceed? 🚀

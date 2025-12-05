@@ -14,16 +14,6 @@
         <div class="flex flex-col min-h-screen">
             <%- include('partials/header') %>
 
-            <!-- Page Actions -->
-            <div class="px-6 py-4 border-b border-slate-700/50 bg-slate-900/95 backdrop-blur-md">
-                <div class="flex justify-end">
-                    <button onclick="showAddTargetModal()" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl hover:shadow-blue-500/25 hover:scale-105 flex items-center gap-2">
-                        <i class="fas fa-plus"></i>
-                        Add Target
-                    </button>
-                </div>
-            </div>
-
             <!-- Content Area -->
             <main class="flex-1 overflow-y-auto p-6">
                 <!-- Flash Messages -->
@@ -38,8 +28,14 @@
                         Ping Monitoring
                     </h2>
                     <p class="text-gray-400 text-sm mt-1">Monitor Network Connectivity & Latency</p>
+                        <button onclick="showAddTargetModal()" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl hover:shadow-blue-500/25 hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>Add Target
+                    </button>
                 </div>
+            </div>
 
+            <!-- Content -->
+            <div class="p-4 md:p-8">
                 <!-- Ping Targets by Group -->
                 <% Object.keys(groupedTargets).forEach(group => { %>
                 <div class="mb-6 md:mb-8">
@@ -163,6 +159,11 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
+        <%- include('partials/footer') %>
+    </div>
+
     <!-- Add Target Modal -->
     <div id="addTargetModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 hidden">
         <div class="relative top-4 md:top-20 mx-auto p-4 md:p-5 border border-slate-700/50 w-full max-w-sm md:max-w-md shadow-2xl rounded-xl bg-gradient-to-br from-slate-800 to-slate-900">
@@ -256,13 +257,13 @@
         let pingHistory = {};
         let pingCharts = {};
         let chartData = {};
-        let pollingIntervalMs = '<%= pollingIntervalSeconds * 1000 %>'; // Auto-refresh interval from settings
+        let pollingIntervalMs = <%= pollingIntervalSeconds * 1000 %>; // Auto-refresh interval from settings
         let notificationSettings = {
-            enabled: '<%= settings.pingNotifications?.enabled ? 'true' : 'false' %>',
-            notifyOnDown: '<%= settings.pingNotifications?.notifyOnDown ? 'true' : 'false' %>',
-            notifyOnTimeout: '<%= settings.pingNotifications?.notifyOnTimeout ? 'true' : 'false' %>',
-            notifyOnHighLatency: '<%= settings.pingNotifications?.notifyOnHighLatency ? 'true' : 'false' %>',
-            latencyThreshold: '<%= settings.pingNotifications?.latencyThreshold || 50 %>'
+            enabled: <%= settings.pingNotifications?.enabled ? 'true' : 'false' %>,
+            notifyOnDown: <%= settings.pingNotifications?.notifyOnDown ? 'true' : 'false' %>,
+            notifyOnTimeout: <%= settings.pingNotifications?.notifyOnTimeout ? 'true' : 'false' %>,
+            notifyOnHighLatency: <%= settings.pingNotifications?.notifyOnHighLatency ? 'true' : 'false' %>,
+            latencyThreshold: <%= settings.pingNotifications?.latencyThreshold || 50 %>
         };
 
         // Initialize ping monitoring
@@ -737,10 +738,6 @@
             }
         }
     </script>
-
-    <!-- Footer -->
-    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
-        <%- include('partials/footer') %>
-    </div>
 </body>
+</html>
 </html>

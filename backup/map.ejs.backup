@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-    <%- include('partials/head') %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Topology Map - SMon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape-cose-bilkent/4.1.0/cytoscape-cose-bilkent.min.js"></script>
     <style>
         #cy {
             width: 100%;
             height: 100%;
-            min-height: 600px; /* Ensure minimum height */
             background: #0f172a;
         }
 
@@ -78,54 +82,126 @@
         }
     </style>
 </head>
-<body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100" x-data="{ sidebarOpen: true }">
-    <%- include('partials/sidebar') %>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100 min-h-screen">
+    <div class="flex h-screen">
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-br from-slate-800 to-slate-900 p-3 rounded-xl border border-slate-700/50 shadow-xl hover:shadow-2xl hover:border-slate-600/70 transition-all duration-300 group">
+            <i class="fas fa-bars text-white group-hover:scale-110 transition-transform duration-200"></i>
+        </button>
 
-    <!-- Main Content -->
-    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
-        <div class="flex flex-col min-h-screen">
-            <%- include('partials/header') %>
+        <!-- Mobile Overlay -->
+        <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-30 hidden"></div>
 
-            <!-- Page Actions -->
-            <div class="px-6 py-4 border-b border-slate-700/50 bg-slate-900/95 backdrop-blur-md">
-                <div class="flex justify-end gap-2">
-                    <button onclick="addNodeMode()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02]" title="Add new node">
-                        <i class="fas fa-plus"></i>
-                        <span class="hidden sm:inline">Node</span>
-                    </button>
-                    <button onclick="addLinkMode()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-[1.02]" title="Create connection">
-                        <i class="fas fa-link"></i>
-                        <span class="hidden sm:inline">Link</span>
-                    </button>
-                    <button onclick="layoutGraph('cose')" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-purple-500/25 hover:scale-[1.02]" title="Auto-arrange">
-                        <i class="fas fa-shuffle"></i>
-                        <span class="hidden sm:inline">Layout</span>
-                    </button>
-                    <button onclick="refreshStatus()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02]" title="Refresh status">
-                        <i class="fas fa-sync" id="refresh-icon"></i>
-                        <span class="hidden sm:inline">Refresh</span>
-                    </button>
-                    <button onclick="toggleFullscreen()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02]" title="Toggle fullscreen">
-                        <i class="fas fa-expand" id="fullscreen-icon"></i>
-                        <span class="hidden sm:inline">Fullscreen</span>
-                    </button>
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-gradient-to-b from-slate-950 to-slate-900 border-r border-slate-700/50 shadow-2xl flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out">
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+                        <i class="fas fa-chart-line text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">SMon</h1>
+                        <p class="text-xs text-gray-400">SNMP Monitor</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Content Area -->
-            <main class="flex-1 overflow-y-auto p-6">
-                <!-- Flash Messages -->
-                <%- include('partials/flash') %>
-
-                <!-- Page Title -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                            <i class="fas fa-sitemap text-white text-sm"></i>
-                        </div>
-                        Network Topology Map
-                    </h2>
-                    <p class="text-gray-400 text-sm mt-1">Visual network device connections and real-time status</p>
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 overflow-y-auto">
+                <div class="space-y-2">
+                    <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-chart-area w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/monitoring" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-gauge-high w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Bandwidth Monitor</span>
+                    </a>
+                    <a href="/ping" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-network-wired w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Ping Monitor</span>
+                    </a>
+                    <a href="/websites" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
+                        <i class="fas fa-globe w-5"></i>
+                        <span>Website Monitor</span>
+                    </a>
+                    <a href="/domains" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-at w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Domain Monitor</span>
+                    </a>
+                    <a href="/devices" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-server w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Devices</span>
+                    </a>
+                    <a href="/map" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium transition-all hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] group">
+                        <i class="fas fa-sitemap w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Topology Map</span>
+                    </a>
+                    <a href="/history" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-history w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>History</span>
+                    </a>
+                    <a href="/status" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-tachometer-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Status</span>
+                    </a>
+                    <a href="/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-cog w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/about" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+                        <i class="fas fa-info-circle w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>About</span>
+                    </a>
+                    <a href="/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] mt-4 group">
+                        <i class="fas fa-sign-out-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="px-4 py-4 border-t border-slate-700/50 bg-gradient-to-r from-slate-900/30 to-slate-800/30">
+                <div class="text-xs text-gray-500 text-center">
+                    <p class="font-medium">SNMP Monitor v2.0.1</p>
+                    <p class="text-gray-600">Network Intelligence</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto md:ml-0 flex flex-col">
+            <!-- Top Header -->
+            <div class="bg-gradient-to-r from-slate-950 to-slate-900 border-b border-slate-700/50 px-4 md:px-8 py-4 sticky top-0 z-20 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-sitemap text-blue-400"></i>
+                            Network Topology Map
+                        </h2>
+                        <p class="text-sm text-gray-400 mt-1">Visual network device connections and real-time status</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="addNodeMode()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02]" title="Add new node">
+                            <i class="fas fa-plus"></i>
+                            <span class="hidden sm:inline">Node</span>
+                        </button>
+                        <button onclick="addLinkMode()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-[1.02]" title="Create connection">
+                            <i class="fas fa-link"></i>
+                            <span class="hidden sm:inline">Link</span>
+                        </button>
+                        <button onclick="layoutGraph('cose')" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-purple-500/25 hover:scale-[1.02]" title="Auto-arrange">
+                            <i class="fas fa-shuffle"></i>
+                            <span class="hidden sm:inline">Layout</span>
+                        </button>
+                        <button onclick="refreshStatus()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-orange-500/25 hover:scale-[1.02]" title="Refresh status">
+                            <i class="fas fa-sync" id="refresh-icon"></i>
+                            <span class="hidden sm:inline">Refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Map and Sidebar Container -->
             <div class="flex flex-1 gap-4 p-4 overflow-hidden">
@@ -178,16 +254,8 @@
 
         // Initialize Cytoscape
         function initCytoscape() {
-            const container = document.getElementById('cy');
-            
-            if (!container) {
-                console.error('Cytoscape container not found!');
-                return;
-            }
-            
             cy = cytoscape({
-                container: container,
-                elements: [], // Start with empty elements
+                container: document.getElementById('cy'),
                 style: [
                     {
                         selector: 'node',
@@ -200,26 +268,26 @@
                             'background-height-relative-to': 'inner',
                             'background-fit': 'contain',
                             'background-repeat': 'no-repeat',
-                            'background-position-x': '50%',
-                            'background-position-y': '50%',
+                            'background-position-x': '0',
+                            'background-position-y': '0',
                             'background-clip': 'node',
                             'label': 'data(label)',
-                            'text-valign': 'center',
+                            'text-valign': 'bottom',
                             'text-halign': 'center',
                             'font-size': 10,
                             'font-weight': '600',
                             'color': '#fff',
-                            'text-max-width': 80,
+                            'text-max-width': 65,
                             'text-wrap': 'wrap',
-                            'width': 90,
-                            'height': 25,
+                            'width': 70,
+                            'height': 70,
                             'border-width': 2.5,
                             'border-color': 'rgba(255, 255, 255, 0.8)',
                             'border-opacity': 0.9,
                             'outline-width': 1,
                             'outline-color': 'rgba(0, 0, 0, 0.3)',
                             'outline-opacity': 0.5,
-                            'shape': 'rectangle',
+                            'shape': 'ellipse',
                             'z-index': 10,
                             'text-margin-y': -5,
                             'padding': 8
@@ -257,11 +325,11 @@
                             'width': 3,
                             'label': 'data(label)',
                             'font-size': 11,
-                            'color': '#ffffff',
                             'text-background-color': '#1e293b',
                             'text-background-padding': '4px',
                             'text-background-opacity': 0.95,
-                            'z-index': 5
+                            'z-index': 5,
+                            'line-dash-pattern': [5, 3]
                         }
                     },
                     {
@@ -271,9 +339,16 @@
                             'line-color': '#3b82f6'
                         }
                     }
-                ]
+                ],
+                layout: {
+                    name: 'cose',
+                    directed: true,
+                    animate: true,
+                    animationDuration: 500,
+                    padding: 50
+                }
             });
-            
+
             // Event handlers
             cy.on('tap', 'node', onNodeTap);
             cy.on('tap', 'edge', onEdgeTap);
@@ -281,6 +356,17 @@
             cy.on('cxttap', 'node', onNodeContextMenu);
             cy.on('cxttap', 'edge', onEdgeContextMenu);
             cy.on('dragfree', 'node', saveNodePositions);
+
+            // Mobile menu handlers
+            document.getElementById('mobile-menu-button').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+                document.getElementById('mobile-overlay').classList.toggle('hidden');
+            });
+
+            document.getElementById('mobile-overlay').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('mobile-overlay').classList.add('hidden');
+            });
 
             loadTopology();
         }
@@ -316,8 +402,14 @@
         }
 
         function getNodeShape(type) {
-            // All nodes use rectangle/box shape for consistency
-            return 'rectangle';
+            switch(type) {
+                case 'router': return 'diamond';
+                case 'switch': return 'square';
+                case 'access-point': return 'triangle';
+                case 'server': return 'vee';
+                case 'site': return 'hexagon';
+                default: return 'ellipse';
+            }
         }
 
         function getLinkColor(quality) {
@@ -874,7 +966,7 @@
                 document.getElementById('nodeCount').textContent = nodes.length;
                 document.getElementById('linkCount').textContent = edges.length;
 
-                const needsLayout = nodes.some(n => n.position.x === undefined || n.position.y === undefined);
+                const needsLayout = nodes.some(n => !n.position.x);
                 if (needsLayout && nodes.length > 0) {
                     layoutGraph('cose');
                 }
@@ -941,33 +1033,6 @@
             selectedElement = null;
         }
 
-        function toggleFullscreen() {
-            const canvas = document.getElementById('cy');
-            const icon = document.getElementById('fullscreen-icon');
-            
-            if (!document.fullscreenElement) {
-                // Enter fullscreen
-                if (canvas.requestFullscreen) {
-                    canvas.requestFullscreen();
-                } else if (canvas.webkitRequestFullscreen) { // Safari
-                    canvas.webkitRequestFullscreen();
-                } else if (canvas.msRequestFullscreen) { // IE11
-                    canvas.msRequestFullscreen();
-                }
-                icon.className = 'fas fa-compress';
-            } else {
-                // Exit fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { // Safari
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { // IE11
-                    document.msExitFullscreen();
-                }
-                icon.className = 'fas fa-expand';
-            }
-        }
-
         function showNotification(message, type = 'info') {
             const div = document.createElement('div');
             div.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg font-medium transition-all duration-300 z-50 ${
@@ -989,29 +1054,10 @@
             document.getElementById('lastUpdate').textContent = `Updated at ${now.toLocaleTimeString()}`;
         }
 
-        function updateFullscreenIcon() {
-            const icon = document.getElementById('fullscreen-icon');
-            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-                icon.className = 'fas fa-compress';
-            } else {
-                icon.className = 'fas fa-expand';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            // Wait a bit for the layout to settle
-            setTimeout(() => {
-                initCytoscape();
-                setInterval(refreshStatus, pollingInterval);
-            }, 100);
-            
-            // Handle fullscreen change events
-            document.addEventListener('fullscreenchange', updateFullscreenIcon);
-            document.addEventListener('webkitfullscreenchange', updateFullscreenIcon); // Safari
-            document.addEventListener('mozfullscreenchange', updateFullscreenIcon); // Firefox
-            document.addEventListener('MSFullscreenChange', updateFullscreenIcon); // IE11
+            initCytoscape();
+            setInterval(refreshStatus, pollingInterval);
         });
     </script>
-    <%- include('partials/footer') %>
 </body>
 </html>

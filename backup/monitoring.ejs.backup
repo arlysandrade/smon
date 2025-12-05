@@ -1,35 +1,122 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-    <%- include('partials/head') %>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bandwidth Monitoring - SMon</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100" x-data="{ sidebarOpen: true }">
-    <%- include('partials/sidebar') %>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100 min-h-screen">
+  <div class="flex h-screen">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-br from-slate-800 to-slate-900 p-3 rounded-xl border border-slate-700/50 shadow-xl hover:shadow-2xl hover:border-slate-600/70 transition-all duration-300 group">
+      <i class="fas fa-bars text-white group-hover:scale-110 transition-transform duration-200"></i>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-30 hidden"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="w-64 bg-gradient-to-b from-slate-950 to-slate-900 border-r border-slate-700/50 shadow-2xl flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out">
+      <!-- Header -->
+      <div class="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
+        <div class="flex items-center gap-3 mb-1">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <i class="fas fa-chart-line text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-white">SMon</h1>
+            <p class="text-xs text-gray-400">SNMP Monitor</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-4 py-6 overflow-y-auto">
+        <div class="space-y-2">
+          <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-chart-area w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="/monitoring" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium transition-all hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] group">
+            <i class="fas fa-gauge-high w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Bandwidth Monitor</span>
+          </a>
+          <a href="/ping" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-network-wired w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Ping Monitor</span>
+          <a href="/websites" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
+            <i class="fas fa-globe w-5"></i>
+            <span>Website Monitor</span>
+          </a>
+          <a href="/domains" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-at w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Domain Monitor</span>
+          </a>
+          <a href="/devices" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-server w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Devices</span>
+          </a>
+          <a href="/map" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-sitemap w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Topology Map</span>
+          </a>
+          <a href="/history" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-history w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>History</span>
+          </a>
+          <a href="/status" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-tachometer-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Status</span>
+          </a>
+          <a href="/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-cog w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Settings</span>
+          </a>
+          <a href="/about" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
+            <i class="fas fa-info-circle w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>About</span>
+          </a>
+          <a href="/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] mt-4 group">
+            <i class="fas fa-sign-out-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Footer -->
+      <div class="px-4 py-4 border-t border-slate-700/50 bg-gradient-to-r from-slate-900/30 to-slate-800/30">
+        <div class="text-xs text-gray-500 text-center">
+          <p class="font-medium">SNMP Monitor v2.0.1</p>
+          <p class="text-gray-600">Network Intelligence</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Content -->
-    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
-        <div class="flex flex-col min-h-screen">
-            <%- include('partials/header') %>
+    <div class="flex-1 overflow-auto md:ml-0">
+      <!-- Top Header -->
+      <div class="bg-gradient-to-r from-slate-950 to-slate-900 border-b border-slate-700/50 px-4 md:px-8 py-4 sticky top-0 z-20 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+              <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                <i class="fas fa-chart-line text-white text-sm"></i>
+              </div>
+              Bandwidth Monitoring
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">Real-time Interface Performance & Analysis</p>
+          </div>
+        </div>
+      </div>
 
-            <!-- Content Area -->
-            <main class="flex-1 overflow-y-auto p-6">
-                <!-- Flash Messages -->
-                <%- include('partials/flash') %>
-
-                <!-- Page Title -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                            <i class="fas fa-chart-line text-white text-sm"></i>
-                        </div>
-                        Bandwidth Monitoring
-                    </h2>
-                    <p class="text-gray-400 text-sm mt-1">Real-time Interface Performance & Analysis</p>
-                </div>
+      <!-- Content -->
+      <div class="p-8">
         <!-- Filter Controls -->
         <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 p-6 mb-8 shadow-xl hover:shadow-2xl transition-all duration-300">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -227,6 +314,21 @@
     document.addEventListener('DOMContentLoaded', function() {
       const deviceSelector = document.getElementById('device-selector');
       const timeRangeSelector = document.getElementById('time-range-selector');
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const sidebar = document.getElementById('sidebar');
+      const mobileOverlay = document.getElementById('mobile-overlay');
+
+      // Mobile menu toggle
+      mobileMenuButton.addEventListener('click', function() {
+        sidebar.classList.toggle('-translate-x-full');
+        mobileOverlay.classList.toggle('hidden');
+      });
+
+      // Close sidebar when clicking overlay
+      mobileOverlay.addEventListener('click', function() {
+        sidebar.classList.add('-translate-x-full');
+        mobileOverlay.classList.add('hidden');
+      });
 
       // Load interfaces when device changes
       deviceSelector.addEventListener('change', function() {
@@ -881,67 +983,41 @@
 
       const container = document.getElementById('charts-container');
       container.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading data...</p></div>';
-
+      
       const timeRange = document.getElementById('time-range-selector').value;
       let timeRangeParam = timeRange;
-
+      
       if (timeRange === 'custom') {
         const dateFrom = document.getElementById('date-from-input').value;
         const dateTo = document.getElementById('date-to-input').value;
-
+        
         if (!dateFrom || !dateTo) {
           showToast('Please select both From and To dates', 'warning');
           container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i><p>Select device and click "Load Data" to display bandwidth charts</p></div>';
           return;
         }
-
+        
         const startDate = new Date(dateFrom);
         const endDate = new Date(dateTo);
-
+        
         if (startDate >= endDate) {
           showToast('From date must be before To date', 'warning');
           console.error('Invalid date range:', { dateFrom, dateTo });
           container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i><p>Select device and click "Load Data" to display bandwidth charts</p></div>';
           return;
         }
-
+        
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
-
+        
         timeRangeParam = `custom:${startISO},${endISO}`;
-        console.log('Custom date range - Valid:', {
-          dateFrom,
-          dateTo,
-          startISO,
-          endISO,
+        console.log('Custom date range - Valid:', { 
+          dateFrom, 
+          dateTo, 
+          startISO, 
+          endISO, 
           timeRangeParam
         });
-      } else {
-        // For non-custom ranges, make them dynamic by calculating from current time
-        const now = new Date();
-        const endISO = now.toISOString();
-
-        let startDate;
-        if (timeRange === '-1h') {
-          startDate = new Date(now.getTime() - (1 * 60 * 60 * 1000)); // 1 hour ago
-        } else if (timeRange === '-24h') {
-          startDate = new Date(now.getTime() - (24 * 60 * 60 * 1000)); // 24 hours ago
-        } else if (timeRange === '-7d') {
-          startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)); // 7 days ago
-        } else if (timeRange === '-30d') {
-          startDate = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)); // 30 days ago
-        }
-
-        if (startDate) {
-          const startISO = startDate.toISOString();
-          timeRangeParam = `custom:${startISO},${endISO}`;
-          console.log('Dynamic time range:', {
-            range: timeRange,
-            start: startISO,
-            end: endISO,
-            timeRangeParam
-          });
-        }
       }
 
       // Clear old charts
@@ -1096,6 +1172,32 @@
         container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i><p>Select device and click "Load Data" to display bandwidth charts</p></div>';
       }
     }
+
+    // Update header system stats
+    function updateHeaderStats() {
+      fetch('/api/system-info')
+        .then(response => response.json())
+        .then(data => {
+          if (document.getElementById('header-cpu')) {
+            document.getElementById('header-cpu').textContent = data.cpuUsage + '%';
+          }
+          if (document.getElementById('header-memory')) {
+            const memUsedGB = (data.memory.used / 1024 / 1024 / 1024).toFixed(1);
+            const memTotalGB = (data.memory.total / 1024 / 1024 / 1024).toFixed(1);
+            document.getElementById('header-memory').textContent = `${memUsedGB}/${memTotalGB}GB`;
+          }
+          if (document.getElementById('header-storage') && data.storage) {
+            const storageUsedGB = (data.storage.used / 1024 / 1024 / 1024).toFixed(1);
+            const storageTotalGB = (data.storage.total / 1024 / 1024 / 1024).toFixed(1);
+            document.getElementById('header-storage').textContent = `${storageUsedGB}/${storageTotalGB}GB`;
+          }
+        })
+        .catch(err => console.error('Error fetching system info:', err));
+    }
+
+    // Initial update and periodic refresh
+    updateHeaderStats();
+    setInterval(updateHeaderStats, pollingIntervalMs); // Update every polling interval
 
     // Generate Professional PDF Report
     async function generatePDFReport() {
@@ -1369,23 +1471,15 @@
       return stats;
     }
 
-    // Auto-refresh every 30 seconds (only if charts are currently displayed)
+    // Auto-refresh every 1 minute (only if charts are currently displayed)
     setInterval(() => {
       const container = document.getElementById('charts-container');
       const charts = container.querySelectorAll('.bg-gradient-to-br');
       if (charts.length > 0) {
         loadChartData();
       }
-    }, 30000);
+    }, 60000);
   </script>
-            </main>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
-        <%- include('partials/footer') %>
-    </div>
 </body>
 </html>
 

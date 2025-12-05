@@ -1,0 +1,124 @@
+<!-- Header -->
+<header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 shadow-lg sticky top-0 z-40">
+    <div class="px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <!-- Page Icon -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg shadow-lg">
+                <i class="<%=
+                    title.includes('Dashboard') ? 'fas fa-chart-area' :
+                    title.includes('Bandwidth') ? 'fas fa-chart-line' :
+                    title.includes('Ping') ? 'fas fa-network-wired' :
+                    title.includes('Topology') ? 'fas fa-sitemap' :
+                    title.includes('History') ? 'fas fa-history' :
+                    title.includes('Settings') ? 'fas fa-cog' :
+                    title.includes('Devices') ? 'fas fa-server' :
+                    'fas fa-tachometer-alt'
+                %> h-6 w-6 text-white"></i>
+            </div>
+            <!-- Page Title -->
+            <div>
+                <h1 class="text-2xl font-bold text-white"><%= title %></h1>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    <%=
+                        title.includes('Dashboard') ? 'Overview & Statistics' :
+                        title.includes('Bandwidth') ? 'Real-time Interface Performance' :
+                        title.includes('Ping') ? 'Network Connectivity Monitoring' :
+                        title.includes('Topology') ? 'Network Device Connections & Status' :
+                        title.includes('History') ? 'Event Logs & System Notifications' :
+                        title.includes('Settings') ? 'System Configuration' :
+                        title.includes('Devices') ? 'Device Management' :
+                        'Network Monitoring System'
+                    %>
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <!-- System Stats -->
+            <div class="flex items-center space-x-2">
+                <!-- CPU -->
+                <div class="flex items-center space-x-1 px-2 py-1 bg-slate-800/60 rounded border border-slate-600/40">
+                    <i class="fas fa-microchip text-blue-400 text-xs"></i>
+                    <span id="header-cpu" class="text-xs font-medium text-white">--%</span>
+                </div>
+                <!-- Memory -->
+                <div class="flex items-center space-x-1 px-2 py-1 bg-slate-800/60 rounded border border-slate-600/40">
+                    <i class="fas fa-memory text-green-400 text-xs"></i>
+                    <span id="header-memory" class="text-xs font-medium text-white">--</span>
+                </div>
+                <!-- Storage -->
+                <div class="flex items-center space-x-1 px-2 py-1 bg-slate-800/60 rounded border border-slate-600/40">
+                    <i class="fas fa-hdd text-orange-400 text-xs"></i>
+                    <span id="header-storage" class="text-xs font-medium text-white">--</span>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="flex items-center space-x-2 px-3 py-2 bg-slate-800/60 rounded-lg border border-slate-600/40">
+                <i class="fas fa-circle text-green-400 animate-pulse text-xs"></i>
+                <span class="text-sm font-medium text-gray-300">Online</span>
+            </div>
+            <!-- Current Time -->
+            <div class="flex items-center space-x-2 px-3 py-2 bg-slate-800/60 rounded-lg border border-slate-600/40">
+                <i class="fas fa-clock text-gray-400 text-sm"></i>
+                <span id="currentTime" class="text-sm font-medium text-white">--:--:--</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    // Time display update
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    }
+
+    // System stats update
+    async function updateSystemStats() {
+        try {
+            const response = await fetch('/api/system-info', {
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+
+            // Update CPU
+            const cpuElement = document.getElementById('header-cpu');
+            if (cpuElement) {
+                cpuElement.textContent = data.cpuUsage + '%';
+            }
+
+            // Update Memory
+            const memoryElement = document.getElementById('header-memory');
+            if (memoryElement && data.memory) {
+                const usedGB = (data.memory.used / 1024 / 1024 / 1024).toFixed(1);
+                const totalGB = (data.memory.total / 1024 / 1024 / 1024).toFixed(1);
+                memoryElement.textContent = `${usedGB}/${totalGB}GB`;
+            }
+
+            // Update Storage
+            const storageElement = document.getElementById('header-storage');
+            if (storageElement && data.storage) {
+                const usedGB = (data.storage.used / 1024 / 1024 / 1024).toFixed(1);
+                const totalGB = (data.storage.total / 1024 / 1024 / 1024).toFixed(1);
+                storageElement.textContent = `${usedGB}/${totalGB}GB`;
+            }
+        } catch (error) {
+            console.error('Failed to fetch system stats:', error);
+        }
+    }
+
+    // Initialize updates
+    updateTime();
+    updateSystemStats();
+    setInterval(updateTime, 1000);
+    setInterval(updateSystemStats, 30000); // Update every 30 seconds
+</script>
