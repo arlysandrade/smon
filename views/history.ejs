@@ -1,146 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Event History - SMon</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <%- include('partials/head') %>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100 min-h-screen">
-  <div class="flex h-screen">
-    <!-- Mobile Menu Button -->
-    <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-br from-slate-800 to-slate-900 p-3 rounded-xl border border-slate-700/50 shadow-xl hover:shadow-2xl hover:border-slate-600/70 transition-all duration-300 group">
-      <i class="fas fa-bars text-white group-hover:scale-110 transition-transform duration-200"></i>
-    </button>
-
-    <!-- Mobile Overlay -->
-    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-30 hidden"></div>
-
-    <!-- Sidebar -->
-    <div id="sidebar" class="w-64 bg-gradient-to-b from-slate-950 to-slate-900 border-r border-slate-700/50 shadow-2xl flex flex-col fixed md:relative inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out">
-      <!-- Header -->
-      <div class="p-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
-        <div class="flex items-center gap-3 mb-1">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 group">
-            <i class="fas fa-chart-line text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200"></i>
-          </div>
-          <div>
-            <h1 class="text-lg font-bold text-white">SMon</h1>
-            <p class="text-xs text-gray-400">SNMP Monitor</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="flex-1 px-4 py-6 overflow-y-auto">
-        <div class="space-y-2">
-          <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-chart-area w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Dashboard</span>
-          </a>
-          <a href="/monitoring" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-gauge-high w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Bandwidth Monitor</span>
-          </a>
-          <a href="/ping" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-network-wired w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Ping Monitor</span>
-          <a href="/websites" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition-all duration-200">
-            <i class="fas fa-globe w-5"></i>
-            <span>Website Monitor</span>
-          </a>
-          <a href="/domains" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-at w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Domain Monitor</span>
-          </a>
-          <a href="/devices" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-server w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Devices</span>
-          </a>
-          <a href="/map" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-sitemap w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Topology Map</span>
-          </a>
-          <a href="/history" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium transition-all hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] group">
-            <i class="fas fa-history w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>History</span>
-          </a>
-          <a href="/status" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-tachometer-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Status</span>
-          </a>
-          <a href="/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-cog w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Settings</span>
-          </a>
-          <a href="/about" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group">
-            <i class="fas fa-info-circle w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>About</span>
-          </a>
-          <a href="/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] mt-4 group">
-            <i class="fas fa-sign-out-alt w-5 group-hover:scale-110 transition-transform duration-200"></i>
-            <span>Logout</span>
-          </a>
-        </div>
-      </nav>
-
-      <!-- Footer -->
-      <div class="px-4 py-4 border-t border-slate-700/50 bg-gradient-to-r from-slate-900/30 to-slate-800/30">
-        <div class="text-xs text-gray-500 text-center">
-          <p class="font-medium">SNMP Monitor v2.0.1</p>
-          <p class="text-gray-600">Network Intelligence</p>
-        </div>
-      </div>
-    </div>
+<body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-gray-100" x-data="{ sidebarOpen: true }">
+    <%- include('partials/sidebar') %>
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-auto md:ml-0">
-      <!-- Top Header -->
-      <div class="bg-gradient-to-r from-slate-950 to-slate-900 border-b border-slate-700/50 px-4 md:px-8 py-4 sticky top-0 z-20 shadow-xl">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-              <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-                <i class="fas fa-history text-white text-sm"></i>
-              </div>
-              Event History
-            </h2>
-            <p class="text-gray-400 text-sm mt-1">Monitor and track all system events and notifications</p>
-          </div>
+    <div class="transition-all duration-300" :class="sidebarOpen ? 'ml-64' : 'ml-20'">
+        <div class="flex flex-col min-h-screen">
+            <%- include('partials/header') %>
 
-          <!-- System Stats -->
-          <div class="flex flex-wrap gap-3 text-xs">
-            <div class="flex items-center gap-2 bg-gradient-to-br from-slate-800 to-slate-900 px-3 py-2 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 group">
-              <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200">
-                <i class="fas fa-microchip text-white text-xs"></i>
-              </div>
-              <div>
-                <p class="text-gray-400 font-medium">CPU</p>
-                <p class="text-white font-semibold" id="header-cpu">--%</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 bg-gradient-to-br from-slate-800 to-slate-900 px-3 py-2 rounded-xl border border-slate-700/50 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300 hover:scale-105 group">
-              <div class="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200">
-                <i class="fas fa-memory text-white text-xs"></i>
-              </div>
-              <div>
-                <p class="text-gray-400 font-medium">Memory</p>
-                <p class="text-white font-semibold" id="header-memory">--</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 bg-gradient-to-br from-slate-800 to-slate-900 px-3 py-2 rounded-xl border border-slate-700/50 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 hover:scale-105 group">
-              <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200">
-                <i class="fas fa-database text-white text-xs"></i>
-              </div>
-              <div>
-                <p class="text-gray-400 font-medium">Events</p>
-                <p class="text-white font-semibold" id="header-events">--</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Flash Messages -->
+                <%- include('partials/flash') %>
+
+                <!-- Page Title -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <i class="fas fa-history text-white text-sm"></i>
+                        </div>
+                        Event History
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">Monitor and track all system events and notifications</p>
+                </div>
 
       <!-- Main Content Area -->
       <div class="p-6">
@@ -164,7 +49,16 @@
               <option value="ping_down" style="background-color: rgb(51 65 85); color: white;">Ping Target Down</option>
               <option value="ping_timeout" style="background-color: rgb(51 65 85); color: white;">Ping Timeout</option>
               <option value="high_latency" style="background-color: rgb(51 65 85); color: white;">High Latency</option>
+              <option value="ping_target_added" style="background-color: rgb(51 65 85); color: white;">Ping Target Added</option>
+              <option value="ping_target_deleted" style="background-color: rgb(51 65 85); color: white;">Ping Target Deleted</option>
+              <option value="ping_target_toggled" style="background-color: rgb(51 65 85); color: white;">Ping Target Toggled</option>
               <option value="interface_down" style="background-color: rgb(51 65 85); color: white;">Interface Down</option>
+              <option value="topology_node_added" style="background-color: rgb(51 65 85); color: white;">Topology Node Added</option>
+              <option value="topology_node_updated" style="background-color: rgb(51 65 85); color: white;">Topology Node Updated</option>
+              <option value="topology_node_deleted" style="background-color: rgb(51 65 85); color: white;">Topology Node Deleted</option>
+              <option value="topology_link_added" style="background-color: rgb(51 65 85); color: white;">Topology Link Added</option>
+              <option value="topology_link_updated" style="background-color: rgb(51 65 85); color: white;">Topology Link Updated</option>
+              <option value="topology_link_deleted" style="background-color: rgb(51 65 85); color: white;">Topology Link Deleted</option>
               <option value="system" style="background-color: rgb(51 65 85); color: white;">System Events</option>
             </select>
           </div>
@@ -377,7 +271,16 @@
       ping_down: { icon: 'fas fa-arrow-down', color: 'text-red-400', bgColor: 'bg-red-500/20' },
       ping_timeout: { icon: 'fas fa-clock', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
       high_latency: { icon: 'fas fa-tachometer-alt', color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
+      ping_target_added: { icon: 'fas fa-plus-circle', color: 'text-green-400', bgColor: 'bg-green-500/20' },
+      ping_target_deleted: { icon: 'fas fa-minus-circle', color: 'text-red-400', bgColor: 'bg-red-500/20' },
+      ping_target_toggled: { icon: 'fas fa-toggle-on', color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
       interface_down: { icon: 'fas fa-ethernet', color: 'text-red-400', bgColor: 'bg-red-500/20' },
+      topology_node_added: { icon: 'fas fa-plus-circle', color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
+      topology_node_updated: { icon: 'fas fa-edit', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' },
+      topology_node_deleted: { icon: 'fas fa-minus-circle', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
+      topology_link_added: { icon: 'fas fa-link', color: 'text-green-400', bgColor: 'bg-green-500/20' },
+      topology_link_updated: { icon: 'fas fa-edit', color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' },
+      topology_link_deleted: { icon: 'fas fa-unlink', color: 'text-orange-400', bgColor: 'bg-orange-500/20' },
       system: { icon: 'fas fa-cog', color: 'text-blue-400', bgColor: 'bg-blue-500/20' }
     };
 
@@ -724,25 +627,8 @@
   </script>
 
   <script>
-    // Mobile menu functionality
+    // Load history data on page load
     document.addEventListener('DOMContentLoaded', () => {
-      const mobileMenuButton = document.getElementById('mobile-menu-button');
-      const sidebar = document.getElementById('sidebar');
-      const mobileOverlay = document.getElementById('mobile-overlay');
-
-      // Mobile menu toggle
-      mobileMenuButton.addEventListener('click', function() {
-        sidebar.classList.toggle('-translate-x-full');
-        mobileOverlay.classList.toggle('hidden');
-      });
-
-      // Close sidebar when clicking overlay
-      mobileOverlay.addEventListener('click', function() {
-        sidebar.classList.add('-translate-x-full');
-        mobileOverlay.classList.add('hidden');
-      });
-
-      // Load history data
       loadEvents();
     });
 
@@ -776,5 +662,6 @@
     updateHeaderStats();
     setInterval(updateHeaderStats, pollingIntervalMs); // Update based on polling interval
   </script>
+    <%- include('partials/footer') %>
 </body>
-</html></html>
+</html>

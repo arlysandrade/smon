@@ -1069,6 +1069,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Load package.json for version information
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+app.locals.version = packageJson.version;
+
 // Cookie parser middleware
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -1611,6 +1615,7 @@ app.get('/', (req, res) => {
   });
   
   res.render('index', { 
+    title: 'Dashboard',
     devices: snmpDevices,
     interfaces: allInterfaces,
     pingTargets: safePingTargets,
@@ -1623,12 +1628,16 @@ app.get('/', (req, res) => {
 
 // Route for device management page
 app.get('/devices', (req, res) => {
-  res.render('devices', { devices: snmpDevices });
+  res.render('devices', { 
+    title: 'Devices',
+    devices: snmpDevices 
+  });
 });
 
 // Route for settings page
 app.get('/settings', (req, res) => {
   res.render('settings', { 
+    title: 'Settings',
     settings: settings,
     devices: snmpDevices,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
@@ -1639,6 +1648,7 @@ app.get('/settings', (req, res) => {
 // Route for history page
 app.get('/history', (req, res) => {
   res.render('history', {
+    title: 'History',
     settings: settings,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
     pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
@@ -1648,6 +1658,7 @@ app.get('/history', (req, res) => {
 // Route for about page
 app.get('/about', (req, res) => {
   res.render('about', {
+    title: 'About',
     settings: settings,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
     pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
@@ -1676,6 +1687,7 @@ app.get('/ping', (req, res) => {
   });
 
   res.render('ping', { 
+    title: 'Ping Monitor',
     pingTargets: pingTargets,
     groupedTargets: groupedTargets,
     settings: settings,
@@ -1696,6 +1708,7 @@ app.get('/domains', (req, res) => {
   });
 
   res.render('domains', {
+    title: 'Domain Monitor',
     domainTargets: domainTargets,
     groupedTargets: groupedTargets,
     settings: settings,
@@ -1716,6 +1729,7 @@ app.get('/websites', (req, res) => {
   });
 
   res.render('websites', { 
+    title: 'Website Monitor',
     websiteTargets: websiteTargets,
     groupedTargets: groupedTargets,
     settings: settings,
@@ -1727,6 +1741,7 @@ app.get('/websites', (req, res) => {
 // Network Topology Map Page
 app.get('/map', (req, res) => {
   res.render('map', {
+    title: 'Topology Map',
     settings: settings,
     pollingIntervalSeconds: settings.pollingInterval / 1000,
     pingIntervalSeconds: settings.pingInterval ? settings.pingInterval / 1000 : 30
@@ -1764,6 +1779,14 @@ app.post('/api/ping-targets', (req, res) => {
     pingTargets.push(newTarget);
     savePingTargets();
     
+    // Log the event
+    logEvent('ping_target_added', 'info', 'Ping Monitor', `Ping target "${newTarget.name}" (${newTarget.host}) added to group "${newTarget.group}"`, {
+      targetId: newTarget.id,
+      targetName: newTarget.name,
+      targetHost: newTarget.host,
+      targetGroup: newTarget.group
+    });
+    
     res.json({
       success: true,
       message: 'Ping target added successfully',
@@ -1785,8 +1808,17 @@ app.delete('/api/ping-targets/:id', (req, res) => {
       return res.status(404).json({ error: 'Ping target not found' });
     }
     
+    const target = pingTargets[index]; // Capture target data before deletion
     pingTargets.splice(index, 1);
     savePingTargets();
+    
+    // Log the event
+    logEvent('ping_target_deleted', 'warning', 'Ping Monitor', `Ping target "${target.name}" (${target.host}) removed from group "${target.group}"`, {
+      targetId: target.id,
+      targetName: target.name,
+      targetHost: target.host,
+      targetGroup: target.group
+    });
     
     res.json({
       success: true,
@@ -1810,6 +1842,16 @@ app.patch('/api/ping-targets/:id/toggle', (req, res) => {
     
     target.enabled = !target.enabled;
     savePingTargets();
+    
+    // Log the event
+    const action = target.enabled ? 'enabled' : 'disabled';
+    logEvent('ping_target_toggled', 'info', 'Ping Monitor', `Ping target "${target.name}" (${target.host}) ${action}`, {
+      targetId: target.id,
+      targetName: target.name,
+      targetHost: target.host,
+      targetGroup: target.group,
+      enabled: target.enabled
+    });
     
     res.json({
       success: true,
@@ -2261,6 +2303,7 @@ app.get('/monitoring', async (req, res) => {
     // If no devices are available, render the page with empty devices
     if (Object.keys(snmpDevices).length === 0) {
       return res.render('monitoring', {
+        title: 'Bandwidth Monitoring',
         devices: {},
         selectedDevice: null,
         pollingIntervalSeconds: settings.pollingInterval / 1000,
@@ -2274,6 +2317,7 @@ app.get('/monitoring', async (req, res) => {
     }
 
     res.render('monitoring', {
+      title: 'Bandwidth Monitoring',
       devices: snmpDevices,
       selectedDevice: deviceId,
       pollingIntervalSeconds: settings.pollingInterval / 1000,
@@ -3779,6 +3823,52 @@ app.get('/api/system-info', (req, res) => {
   });
 });
 
+// System stats API endpoint for dashboard header
+app.get('/api/system/stats', (req, res) => {
+  const os = require('os');
+  
+  // Get CPU usage
+  const cpus = os.cpus();
+  let totalIdle = 0;
+  let totalTick = 0;
+  cpus.forEach(cpu => {
+    for (let type in cpu.times) {
+      totalTick += cpu.times[type];
+    }
+    totalIdle += cpu.times.idle;
+  });
+  const idle = totalIdle / cpus.length;
+  const total = totalTick / cpus.length;
+  const cpuUsage = Math.round(100 - ~~(100 * idle / total));
+  
+  // Get memory info
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
+  const usedMemory = totalMemory - freeMemory;
+  const memoryPercent = Math.round((usedMemory / totalMemory) * 100);
+  const memoryGB = (usedMemory / (1024 * 1024 * 1024)).toFixed(1) + 'GB';
+  
+  // Get disk info
+  let diskUsage = 'N/A';
+  try {
+    const { execSync } = require('child_process');
+    const dfOutput = execSync('df -h / | tail -1').toString();
+    const parts = dfOutput.split(/\s+/);
+    if (parts.length >= 5) {
+      // Show used/total instead of just percentage
+      diskUsage = parts[2] + '/' + parts[1]; // Used/Size
+    }
+  } catch (err) {
+    console.error('Error getting disk info:', err);
+  }
+  
+  res.json({
+    cpu: Math.max(0, Math.min(100, cpuUsage)),
+    memory: memoryGB, // Remove percentage
+    disk: diskUsage
+  });
+});
+
 // Ping monitoring function
 function startPingMonitoring() {
   console.log('[PING] Starting ping monitoring for', pingTargets.length, 'targets');
@@ -4426,7 +4516,38 @@ app.get('/api/topology', (req, res) => {
 // DEBUG: Get ping status history
 app.get('/api/debug/ping-status', (req, res) => {
   try {
+    // Group ping targets by group (same as dashboard)
+    const groupedPingTargets = {};
+    pingTargets.forEach(target => {
+      if (!groupedPingTargets[target.group]) {
+        groupedPingTargets[target.group] = [];
+      }
+      groupedPingTargets[target.group].push(target);
+    });
+
+    // Create details array in the same order as displayed on dashboard
+    const details = [];
+    Object.entries(groupedPingTargets).forEach(([group, targets]) => {
+      targets.forEach(target => {
+        const history = pingStatusHistory[target.id];
+        if (history) {
+          details.push({
+            latency: history.lastLatency || 0,
+            loss: history.lastPacketLoss || 0,
+            status: history.alive ? 'online' : 'offline'
+          });
+        } else {
+          details.push({
+            latency: 0,
+            loss: 0,
+            status: 'unknown'
+          });
+        }
+      });
+    });
+
     const debugInfo = {
+      details: details,
       pingTargets: pingTargets.map(t => ({
         id: t.id,
         name: t.name,
@@ -4509,6 +4630,14 @@ app.post('/api/topology/nodes', (req, res) => {
     topology.nodes.push(newNode);
     saveTopology();
 
+    // Log topology event
+    logEvent('topology_node_added', 'info', 'Topology', `Node "${newNode.label}" (${newNode.ip || 'no IP'}) added to topology`, {
+      nodeId: newNode.id,
+      nodeLabel: newNode.label,
+      nodeIp: newNode.ip,
+      nodeType: newNode.type
+    });
+
     // Add to ping targets if it has probe settings
     if (newNode.probeType === 'ping' && newNode.probeTarget) {
       const exists = pingTargets.some(t => t.host === newNode.probeTarget);
@@ -4561,6 +4690,18 @@ app.put('/api/topology/nodes/:id', (req, res) => {
     if (icon !== undefined) node.icon = icon;
 
     saveTopology();
+
+    // Log topology event
+    logEvent('topology_node_updated', 'info', 'Topology', `Node "${node.label}" updated`, {
+      nodeId: node.id,
+      nodeLabel: node.label,
+      changes: {
+        label: label !== undefined ? { from: node.label, to: label } : undefined,
+        ip: ip !== undefined ? { from: node.ip, to: ip } : undefined,
+        type: type !== undefined ? { from: node.type, to: type } : undefined,
+        probeTarget: probeTarget !== undefined ? { from: oldProbeTarget, to: probeTarget } : undefined
+      }
+    });
 
     // Update ping targets if probe target changed
     if (probeTarget !== undefined && probeTarget !== oldProbeTarget) {
@@ -4617,6 +4758,9 @@ app.delete('/api/topology/nodes/:id', (req, res) => {
       return res.status(404).json({ error: 'Node not found' });
     }
 
+    const node = topology.nodes[index]; // Get node before deletion
+    const linksBefore = topology.links.length;
+
     // Remove node
     topology.nodes.splice(index, 1);
 
@@ -4624,6 +4768,14 @@ app.delete('/api/topology/nodes/:id', (req, res) => {
     topology.links = topology.links.filter(l => l.source !== nodeId && l.target !== nodeId);
 
     saveTopology();
+
+    // Log topology event
+    logEvent('topology_node_deleted', 'warning', 'Topology', `Node "${node.label}" deleted from topology`, {
+      nodeId: nodeId,
+      nodeLabel: node.label,
+      nodeIp: node.ip,
+      linksRemoved: linksBefore - topology.links.length
+    });
 
     res.json({
       success: true,
@@ -4670,6 +4822,18 @@ app.post('/api/topology/links', (req, res) => {
     topology.links.push(newLink);
     saveTopology();
 
+    // Log topology event
+    const sourceNode = topology.nodes.find(n => n.id === source);
+    const targetNode = topology.nodes.find(n => n.id === target);
+    logEvent('topology_link_added', 'info', 'Topology', `Link created between "${sourceNode?.label || source}" and "${targetNode?.label || target}"`, {
+      linkId: newLink.id,
+      sourceNode: source,
+      targetNode: target,
+      sourceLabel: sourceNode?.label,
+      targetLabel: targetNode?.label,
+      linkLabel: newLink.label
+    });
+
     res.json({
       success: true,
       message: 'Link created successfully',
@@ -4699,6 +4863,20 @@ app.put('/api/topology/links/:id', (req, res) => {
 
     saveTopology();
 
+    // Log topology event
+    const sourceNode = topology.nodes.find(n => n.id === link.source);
+    const targetNode = topology.nodes.find(n => n.id === link.target);
+    logEvent('topology_link_updated', 'info', 'Topology', `Link between "${sourceNode?.label || link.source}" and "${targetNode?.label || link.target}" updated`, {
+      linkId: link.id,
+      sourceNode: link.source,
+      targetNode: link.target,
+      changes: {
+        label: label !== undefined ? { from: link.label, to: label } : undefined,
+        latencyThreshold: latencyThreshold !== undefined ? { from: link.latencyThreshold, to: latencyThreshold } : undefined,
+        description: description !== undefined ? { from: link.description, to: description } : undefined
+      }
+    });
+
     res.json({
       success: true,
       message: 'Link updated successfully',
@@ -4720,8 +4898,22 @@ app.delete('/api/topology/links/:id', (req, res) => {
       return res.status(404).json({ error: 'Link not found' });
     }
 
+    const link = topology.links[index]; // Get link before deletion
+
     topology.links.splice(index, 1);
     saveTopology();
+
+    // Log topology event
+    const sourceNode = topology.nodes.find(n => n.id === link.source);
+    const targetNode = topology.nodes.find(n => n.id === link.target);
+    logEvent('topology_link_deleted', 'warning', 'Topology', `Link between "${sourceNode?.label || link.source}" and "${targetNode?.label || link.target}" deleted`, {
+      linkId: linkId,
+      sourceNode: link.source,
+      targetNode: link.target,
+      sourceLabel: sourceNode?.label,
+      targetLabel: targetNode?.label,
+      linkLabel: link.label
+    });
 
     res.json({
       success: true,
@@ -4946,6 +5138,9 @@ app.listen(port, () => {
 
   // Start website monitoring immediately
   startWebsiteMonitoring();
+
+  // Start SNMP polling immediately
+  startPolling();
 });
 
 
